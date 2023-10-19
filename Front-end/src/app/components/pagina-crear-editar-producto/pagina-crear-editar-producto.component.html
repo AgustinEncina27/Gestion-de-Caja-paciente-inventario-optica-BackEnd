@@ -1,0 +1,105 @@
+<div class="d-flex justify-content-center my-5 cont">
+    <div class="card bg-dark text-white" style="width: 50%;">
+        <div class="card-header">{{titulo}}</div>
+        <div class="card body">
+            <form #productoForm="ngForm">
+                <div *ngIf="progreso>0" class="progress" role="progressbar" aria-label="Warning striped example" attr.aria-valuenow="{{progreso}}" aria-valuemin="0" aria-valuemax="100">
+                  <div class="progress-bar progress-bar-striped bg-warning" [ngStyle]="{width:progreso+'%'}">
+                    {{progreso}}%
+                  </div>
+                </div>
+                <div class="d-flex justify-content-center mt-3">
+                   <img *ngIf="producto?.foto" src="{{URL_BACKEND}}/api/uploads/img/{{producto.foto}}" alt="{{producto.foto}}" class="img.thumbnail rounded" width="200px" height="auto"> 
+                </div>
+                <div class="mx-3 my-3 ">
+                    <p  class="form-label" id="foto">Foto</p>
+                    <input (change)="seleccionarFoto($event)" type="file" class="form-control" id="inputGroupFile04" aria-describedby="inputGroupFileAddon04" aria-label="Upload">
+                </div>
+                <div class="mb-3 mx-3">
+                    <p  class="form-label" id="marca">Marca</p>
+                    <div class="border overflow-auto p-2 rounded" style="height: 200px; width: auto;">
+                        <div class="form-check  mx-1 " *ngFor="let marca of marcas">
+                            <input class="form-check-input" type="radio" name="flexRadioDefault4" [id]="+marca.id+'marca'" (change)="selecionMarca(marca)" [checked]="estaSeleccionado(marca)">
+                            <label class="form-check-label" [for]="+marca.id+'marca'">
+                            {{marca.nombre}}
+                            </label>
+                        </div>
+                    </div>
+                </div>
+                <div class="mb-3 mx-3">
+                    <label for="InputModelo" class="form-label">Modelo</label>
+                    <input type="text" class="form-control" id="InputModelo" [(ngModel)]="producto.modelo" name="modelo" required  >
+                </div>
+                <div class="mb-3 mx-3 group">
+                    <label for="InputModelo" class="form-label">Stock</label>
+                    <div class="form-check">
+                        <input class="form-check-input" type="radio" name="flexRadioDefault1" id="disponible" (change)="selecionStock(1)" [checked]="producto.stock">
+                        <label class="form-check-label" for="disponible">
+                          Disponible
+                        </label>
+                      </div>
+                      <div class="form-check">
+                        <input class="form-check-input" type="radio" name="flexRadioDefault1" id="Sin Stock" (change)="selecionStock(2)" [checked]="!producto.stock">
+                        <label class="form-check-label" for="Sin Stock">
+                          Sin Stock
+                        </label>
+                      </div>
+                </div>
+                <div class="mb-3 mx-3">
+                    <label class="form-label" for="InputDescipcion">Descipción</label>
+                    <textarea type="text" class="form-control" id="InputDescipcion" [(ngModel)]="producto.descripcion" name="descripcion"></textarea>
+                </div>
+                <div class="mb-3 mx-3">
+                    <label class="form-label" for="InputPrecio">Precio</label>
+                    <input type="number" class="form-control" id="InputPrecio" [(ngModel)]="producto.precio" name="precio" required> 
+                </div>
+                <div class="mb-3 mx-3">
+                    <label class="form-label" for="InputColor">Color</label>
+                    <input type="text" class="form-control" id="InputColor" [(ngModel)]="producto.color" name="color" required> 
+                </div>
+                <div class="mb-3 mx-3 group">
+                    <label for="InputModelo" class="form-label">Stock</label>
+                    <div class="form-check">
+                        <input class="form-check-input" type="radio" name="flexRadioDefault5" id="hombreGenero" (change)="selecionGenero('Hombre')" [checked]="generoSeleccionado('Hombre')">
+                        <label class="form-check-label" for="hombreGenero">
+                          Hombre
+                        </label>
+                      </div>
+                      <div class="form-check">
+                        <input class="form-check-input" type="radio" name="flexRadioDefault5" id="mujerGenero" (change)="selecionGenero('Mujer')" [checked]="generoSeleccionado('Mujer')">
+                        <label class="form-check-label" for="mujerGenero">
+                          Mujer
+                        </label>
+                      </div>
+                      <div class="form-check">
+                        <input class="form-check-input" type="radio" name="flexRadioDefault5" id="ninosGenero" (change)="selecionGenero('Niños')" [checked]="generoSeleccionado('Niños')">
+                        <label class="form-check-label" for="ninosGenero">
+                          Niños
+                        </label>
+                      </div>
+                      <div class="form-check">
+                        <input class="form-check-input" type="radio" name="flexRadioDefault5" id="unisexGenero" (change)="selecionGenero('Unisex')" [checked]="generoSeleccionado('Unisex')">
+                        <label class="form-check-label" for="unisexGenero">
+                          Unisex
+                        </label>
+                      </div>
+                </div>
+                <div class="mb-3 mx-3">
+                    <p><label class="form-label" for="InputColor">Categoria</label></p>
+                    <div class="form-check m-1" *ngFor="let categoria of categorias">
+                        <input class="form-check-input" type="checkbox" [id]="+categoria.id+'categoria'"   [checked]="isCategorySelectedInCheckBox(categoria)" (change)="toggleCategorySelection(categoria)" name="category{{categoria.id}}">
+                        <label class="form-check-label" [for]="+categoria.id+'categoria'" >{{categoria.nombre}}</label>
+                    </div>
+                </div>
+                <button type="submit" class="btn btn-outline-dark mb-3 mx-3" (click)="crearProducto()" 
+                *ngIf="producto.id==null" [disabled]="!productoForm.form.valid || (!fotoEstaSeleccionada && !producto.foto) || marca.id===undefined || !genero || !(selectedCategoriesCheckbox.length>0)">
+                  Crear Producto
+                </button>
+                <button type="submit" class="btn btn-outline-dark mb-3 mx-3" (click)="editarProducto()" *ngIf="producto.id!=null" 
+                [disabled]="!productoForm.form.valid || (!fotoEstaSeleccionada && !producto.foto) || marca.id===undefined || !genero || !(selectedCategoriesCheckbox.length>0)">
+                  Editar Producto
+                </button>
+            </form>
+        </div>
+    </div>
+</div>

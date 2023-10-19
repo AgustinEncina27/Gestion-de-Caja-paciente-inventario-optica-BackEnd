@@ -1,0 +1,27 @@
+<div class="d-flex justify-content-center cont">
+    <div class="card bg-dark text-white" >
+        <div class="card-header">{{titulo}}</div>
+        <div class="card body">
+            <div class="mb-3 mx-3 group mt-3">
+                <p id="listaCategoria" class="form-label">Lista de categorías</p>
+            <div class="form-check" *ngFor="let categoria of categorias">
+                <input class="form-check-input" type="radio" name="flexRadioDefault" [id]="categoria.id"
+                (change)="toggleCategorySelection(categoria)">
+                <label class="form-check-label" [for]="categoria.id">
+                {{categoria.nombre}}
+                </label>
+            </div>
+                <button type="submit" class="btn btn-dark mt-3" (click)="limpiarSeleccion();">Limpiar selección</button>
+            </div>  
+            <form #categoriaForm="ngForm">
+                <div class="mb-3 mx-3">
+                    <p  class="form-label" id="nombreCategoria">Nombre de la Categoria</p>
+                    <input type="text" class="form-control" id="InputMarca" [(ngModel)]="categoria.nombre" name="marca" required>
+                </div>          
+                <button type="submit" class="btn btn-success mb-3 mx-3" (click)="crearCategoria()" [disabled]="!categoriaForm.form.valid || categoria.id!=null">Crear Categoria</button>
+                <button type="submit" class="btn btn-primary mb-3 mx-3" (click)="editarCategoria()" [disabled]="categoria.id==null">Editar Categoria</button>
+                <button type="submit" class="btn btn-danger mb-3 mx-3" (click)="eliminarCategoria()" [disabled]="categoria.id==null">Eliminar Categoria</button>
+            </form>
+        </div>
+    </div>
+</div>

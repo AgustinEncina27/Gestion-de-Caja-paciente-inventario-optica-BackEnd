@@ -1,0 +1,27 @@
+<div class="d-flex justify-content-center cont">
+    <div class="card bg-dark text-white" style="width: 50%;">
+        <div class="card-header">{{titulo}}</div>
+        <div class="card body">
+            <div class="mb-3 mx-3 group mt-3">
+                <p id="listaMarcas" class="form-label">Lista de marcas</p>
+            <div class="form-check" *ngFor="let marca of marcas">
+                <input class="form-check-input" type="radio" name="flexRadioDefault" [id]="marca.id"
+                (change)="toggleMarcaSelection(marca)">
+                <label class="form-check-label" [for]="marca.id">
+                {{marca.nombre}}
+                </label>
+            </div>
+                <button type="submit" class="btn btn-dark mt-3" (click)="limpiarSeleccion();">Limpiar selección</button>
+            </div>  
+            <form #categoriaForm="ngForm">
+                <div class="mb-3 mx-3">
+                    <label for="InputMarca" class="form-label">Nombre de la Marca</label>
+                    <input type="text" class="form-control" id="InputMarca" [(ngModel)]="marca.nombre" name="marca" required>
+                </div>          
+                <button type="submit" class="btn btn-success mb-3 mx-3" (click)="crearMarca()" [disabled]="!categoriaForm.form.valid || marca.id!=null">Crear Marca</button>
+                <button type="submit" class="btn btn-primary mb-3 mx-3" (click)="editarMarca()" [disabled]="marca.id==null">Editar Marca</button>
+                <button type="submit" class="btn btn-danger mb-3 mx-3" (click)="eliminarMarca()" [disabled]="marca.id==null">Eliminar Marca</button>
+            </form>
+        </div>
+    </div>
+</div>
