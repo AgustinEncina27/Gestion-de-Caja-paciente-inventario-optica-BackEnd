@@ -1,0 +1,5 @@
+/.metadata/
+
+# Ignorar el archivo application.properties de desarrollo
+/backend/src/main/resources/application-dev.properties
+/backend/src/main/resources/import.sql
