@@ -76,7 +76,12 @@ public class PacienteServiceImp implements IPacienteService {
 	public boolean existsByDocumento(String documento) {
 		return pacienteDao.existsByDocumento(documento);
 	}
-
+	
+	@Override
+	@Transactional(readOnly = true)
+	public boolean existsByCelular(String celular) {
+		return pacienteDao.existsByCelular(celular);
+	}
 	
 
 }

@@ -145,7 +145,7 @@ public class PdfService implements IPdfService {
                     if (graduacionDerecho.isPresent()) {
                         Graduacion g = graduacionDerecho.get();
                         contentStream.showText("Esférico: " + g.getEsferico() + ", Cilíndrico: " + g.getCilindrico() +
-                            ", Eje: " + g.getEje() + ", Adición: " + g.getAdicion() + ", Fecha: " + g.getFechaGraduacion());
+                            ", Eje: " + g.getEje() + ", Adición: " + g.getAdicion()+", Cerca: " + g.getCerca() + ", Fecha: " + g.getFechaGraduacion());
                     } else {
                         contentStream.showText("No especificado");
                     }
@@ -156,7 +156,7 @@ public class PdfService implements IPdfService {
                     if (graduacionIzquierdo.isPresent()) {
                         Graduacion g = graduacionIzquierdo.get();
                         contentStream.showText("Esférico: " + g.getEsferico() + ", Cilíndrico: " + g.getCilindrico() +
-                            ", Eje: " + g.getEje() + ", Adición: " + g.getAdicion() + ", Fecha: " + g.getFechaGraduacion());
+                            ", Eje: " + g.getEje() + ", Adición: " + g.getAdicion()+", Cerca: " + g.getCerca() + ", Fecha: " + g.getFechaGraduacion());
                     } else {
                         contentStream.showText("No especificado");
                     }

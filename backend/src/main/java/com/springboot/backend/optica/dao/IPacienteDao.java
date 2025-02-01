@@ -26,5 +26,8 @@ public interface IPacienteDao extends JpaRepository<Paciente, Long> {
     
     @Query("SELECT COUNT(p) > 0  FROM Paciente p WHERE p.documento = :documento")
 	boolean existsByDocumento(@Param("documento") String documento);
+    
+    @Query("SELECT COUNT(p) > 0  FROM Paciente p WHERE p.celular = :celular")
+	boolean existsByCelular(@Param("celular")String celular);
 
 }

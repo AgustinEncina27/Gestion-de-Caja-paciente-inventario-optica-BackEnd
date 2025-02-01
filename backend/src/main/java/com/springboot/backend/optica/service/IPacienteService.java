@@ -27,5 +27,7 @@ public interface IPacienteService {
 	Optional<Paciente> findByFicha(Long ficha);
 
 	public boolean existsByDocumento(String documento);
+
+	public boolean existsByCelular(String celular);
 		
 }

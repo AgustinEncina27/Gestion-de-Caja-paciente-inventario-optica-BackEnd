@@ -125,11 +125,18 @@ public class PacienteController {
 			return new ResponseEntity<Map<String, Object>>(response, HttpStatus.BAD_REQUEST);
 		}
 		
-		// Validar existencia de producto por modelo y marca
-	    if (pacienteService.existsByDocumento(paciente.getDocumento())) {
-	        response.put("mensaje", "Ya existe un paciente con el mismo documento");
-	        return new ResponseEntity<>(response, HttpStatus.BAD_REQUEST);
-	    }
+		// Validar existencia del documento y si no posee documento, la existencia del mismo celular
+		if (paciente.getDocumento() != null && !paciente.getDocumento().isEmpty()) {
+		    if (pacienteService.existsByDocumento(paciente.getDocumento())) {
+		        response.put("mensaje", "Ya existe un paciente con el mismo documento");
+		        return new ResponseEntity<>(response, HttpStatus.BAD_REQUEST);
+		    }
+		} else if (paciente.getCelular() != null && !paciente.getCelular().isEmpty()) {
+		    if (pacienteService.existsByCelular(paciente.getCelular())) {
+		        response.put("mensaje", "Ya existe un paciente con el mismo celular y sin documento");
+		        return new ResponseEntity<>(response, HttpStatus.BAD_REQUEST);
+		    }
+		}
 		
 		try {
 			pacienteNew = pacienteService.save(paciente);
@@ -151,7 +158,7 @@ public class PacienteController {
 		Paciente currentPaciente = pacienteService.findById(id);
 
 		Paciente pacienteUpdated = null;
-
+		
 		Map<String, Object> response = new HashMap<>();
 
 		if(result.hasErrors()) {
@@ -172,6 +179,14 @@ public class PacienteController {
 		}
 
 		try {
+			
+			 // Actualizar la colección productoLocales sin reemplazarla
+	        if (paciente.getGraduaciones() != null) {
+	        	paciente.getGraduaciones().forEach(graduacion -> {
+	        		graduacion.setPaciente(paciente);
+	            });
+	        }
+			
 			currentPaciente.setNombreCompleto(paciente.getNombreCompleto());
 			currentPaciente.setDireccion(paciente.getDireccion());
 			currentPaciente.setCelular(paciente.getCelular());
