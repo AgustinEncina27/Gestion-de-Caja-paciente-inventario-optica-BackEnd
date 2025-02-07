@@ -200,7 +200,6 @@ public class PdfService implements IPdfService {
 	                contentStream.setFont(PDType1Font.HELVETICA, 12);
 	                for (CajaMovimiento pago : movimiento.getCajaMovimientos()) {
 	                    contentStream.showText("Método: " + pago.getMetodoPago().getNombre() + " - Monto: " + pago.getMonto());
-	                    deuda+=pago.getMonto();
 	                    contentStream.newLine();
 	                }
 	            }
@@ -210,7 +209,6 @@ public class PdfService implements IPdfService {
                 	contentStream.showText("       Total con descuento: " + movimiento.getTotal());
                     contentStream.showText("       Descuento: " + movimiento.getDescuento());
                 }
-                deuda= movimiento.getTotal()-deuda;
                 contentStream.showText("       Adeuda: " + deuda);
                 contentStream.newLine();
                 
