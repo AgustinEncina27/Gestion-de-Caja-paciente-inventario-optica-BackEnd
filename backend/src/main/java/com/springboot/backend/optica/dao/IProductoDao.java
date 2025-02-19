@@ -19,6 +19,10 @@ public interface IProductoDao extends JpaRepository<Producto, Long> {
 	
 	@Query("SELECT p FROM Producto p WHERE LOWER(p.modelo) LIKE LOWER(:modelo)")
 	List<Producto> findByModeloNoEstricto(@Param("modelo") String modelo);
+	
+	@Query("SELECT p FROM Producto p WHERE LOWER(p.marca.nombre) LIKE LOWER(:marca)")
+	List<Producto> findByMarcaNoEstricto(@Param("marca") String marca);
+
     
     @Query("SELECT p FROM Producto p ORDER BY p.marca.nombre ASC")
     Page<Producto> findAllProducto(Pageable pageable);

@@ -70,6 +70,13 @@ public class ProductoServiceImp implements IProductoService {
 		modelo= "%"+modelo+"%";
 	    return productoDao.findByModeloNoEstricto(modelo);
 	}
+	
+	@Override
+	@Transactional(readOnly = true)
+	public List<Producto> findByMarcaNoEstricto(String marca) {
+		marca= "%"+marca+"%";
+	    return productoDao.findByMarcaNoEstricto(marca);
+	}
 
 
 	@Override

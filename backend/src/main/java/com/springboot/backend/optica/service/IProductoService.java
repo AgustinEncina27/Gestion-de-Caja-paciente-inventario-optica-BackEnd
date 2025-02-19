@@ -30,5 +30,7 @@ public interface IProductoService {
     public boolean setStockByLocal(Long productoId, Long localId, Integer stock);
         
     public boolean existsByModeloAndMarca(String modelo, Long marcaId, Long id);
+    
+    public List<Producto> findByMarcaNoEstricto(String marca);
 		
 }

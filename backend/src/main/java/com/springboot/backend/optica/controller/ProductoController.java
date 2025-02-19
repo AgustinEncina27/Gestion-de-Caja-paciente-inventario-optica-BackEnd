@@ -68,6 +68,15 @@ public class ProductoController {
 	    return ResponseEntity.ok(productos);
 	}
 	
+	@GetMapping("/productos/marca/{marca}")
+	public ResponseEntity<List<Producto>> getProductosPorMarcaNoEstricto(@PathVariable String marca) {
+	    List<Producto> productos = productoService.findByMarcaNoEstricto(marca);
+	    if (productos.isEmpty()) {
+	        return ResponseEntity.notFound().build();
+	    }
+	    return ResponseEntity.ok(productos);
+	}
+	
 	@GetMapping("/productos/page/{genero}/{marca}/{categoria_id}/{page}")
 	public Page<Producto> getProductosPorGenero(@PathVariable String genero,@PathVariable Long marca,@PathVariable Long categoria_id,@PathVariable Integer page) {
 		Pageable pageable = PageRequest.of(page,12);

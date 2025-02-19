@@ -6,6 +6,7 @@ import com.fasterxml.jackson.annotation.JsonIgnoreProperties;
 import lombok.Data;
 
 import java.io.Serializable;
+import java.time.LocalDate;
 
 @Entity
 @Table(name = "caja_movimientos")
@@ -21,6 +22,9 @@ public class CajaMovimiento implements Serializable {
 
     @Column(nullable = false)
     private double montoImpuesto;
+    
+    @Column
+    private LocalDate fecha;
 
     @ManyToOne(fetch = FetchType.LAZY)
     @JoinColumn(name = "metodo_pago_id", nullable = false)
