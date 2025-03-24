@@ -1,5 +1,6 @@
 package com.springboot.backend.optica.service;
 
+import java.util.ArrayList;
 import java.util.List;
 import java.util.Optional;
 
@@ -10,6 +11,7 @@ import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
 import com.springboot.backend.optica.dao.IPacienteDao;
+import com.springboot.backend.optica.dto.PacientesPorSucursalDTO;
 import com.springboot.backend.optica.modelo.Paciente;
 
 @Service
@@ -27,7 +29,7 @@ public class PacienteServiceImp implements IPacienteService {
 	@Override
 	@Transactional(readOnly = true)
 	public Page<Paciente> findAllPaciente(Pageable pageable) {
-		return pacienteDao.findAll(pageable);
+		return pacienteDao.findAllByOrderByFicha(pageable);
 	}
 
 	@Override
@@ -82,6 +84,24 @@ public class PacienteServiceImp implements IPacienteService {
 	public boolean existsByCelular(String celular) {
 		return pacienteDao.existsByCelular(celular);
 	}
+	
+	@Override
+	@Transactional(readOnly = true)
+	public List<PacientesPorSucursalDTO> obtenerCantidadPacientesPorSucursal() {
+        List<Object[]> resultados = pacienteDao.contarPacientesPorSucursal();
+        List<PacientesPorSucursalDTO> pacientesPorSucursal = new ArrayList<>();
+
+        for (Object[] fila : resultados) {
+            PacientesPorSucursalDTO dto = new PacientesPorSucursalDTO(
+                ((Number) fila[0]).longValue(),  // localId
+                (String) fila[1],               // localNombre
+                ((Number) fila[2]).intValue()    // cantidadPacientes
+            );
+            pacientesPorSucursal.add(dto);
+        }
+
+        return pacientesPorSucursal;
+    }
 	
 
 }

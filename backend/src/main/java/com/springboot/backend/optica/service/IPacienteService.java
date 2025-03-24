@@ -6,6 +6,7 @@ import java.util.Optional;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
 
+import com.springboot.backend.optica.dto.PacientesPorSucursalDTO;
 import com.springboot.backend.optica.modelo.Paciente;
 
 public interface IPacienteService {
@@ -29,5 +30,6 @@ public interface IPacienteService {
 	public boolean existsByDocumento(String documento);
 
 	public boolean existsByCelular(String celular);
-		
+
+	public List<PacientesPorSucursalDTO> obtenerCantidadPacientesPorSucursal();		
 }

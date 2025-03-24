@@ -8,6 +8,7 @@ import java.util.Map;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
 
+import com.springboot.backend.optica.dto.FiltroDTO;
 import com.springboot.backend.optica.modelo.Movimiento;
 
 public interface IMovimientoService {
@@ -22,5 +23,7 @@ public interface IMovimientoService {
 	Map<String, Double> calcularTotales(Long idLocal);
 	Page<Movimiento> findByLocalIdPaginated(Long idLocal, Pageable pageable);
 	Page<Movimiento> filtrarMovimientos(Long idLocal, String tipoMovimiento, Long nroFicha, LocalDate fecha, String metodoPago, Pageable pageable);
-	byte[] generarReporteMovimiento(Long idMovimiento)throws IOException;
+	byte[] generarReporteMovimientoCliente(Long idMovimiento)throws IOException;
+	byte[] generarReporteMovimientoOptica(Long idMovimiento)throws IOException;
+	Map<String, Double> calcularTotales(FiltroDTO filtros);
 }

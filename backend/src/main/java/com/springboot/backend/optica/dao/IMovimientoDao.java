@@ -1,6 +1,7 @@
 package com.springboot.backend.optica.dao;
 
 import java.time.LocalDate;
+import java.time.LocalDateTime;
 import java.util.List;
 
 import org.springframework.data.domain.Page;
@@ -24,7 +25,7 @@ public interface IMovimientoDao extends JpaRepository<Movimiento, Long> {
 	
 	@Query("SELECT m FROM Movimiento m WHERE m.local.id = :idLocal")
 	Page<Movimiento> findByLocalId(Long idLocal, Pageable pageable);
-	
+		
 	@Query("SELECT DISTINCT m FROM Movimiento m " +
 		       "LEFT JOIN m.cajaMovimientos p " +
 		       "LEFT JOIN p.metodoPago metodo " +
@@ -32,15 +33,28 @@ public interface IMovimientoDao extends JpaRepository<Movimiento, Long> {
 		       "WHERE (:idLocal IS NULL OR m.local.id = :idLocal) AND " +
 		       "(:tipoMovimiento IS NULL OR m.tipoMovimiento = :tipoMovimiento) AND " +
 		       "(:nroFicha IS NULL OR paciente.ficha = :nroFicha) AND " +
-		       "(cast(:fecha as date) IS NULL OR  m.fecha = :fecha ) AND " +
+		       "(cast(:fechaInicio as date) IS NULL AND cast(:fechaFin as date) IS NULL  OR (m.fecha >= :fechaInicio AND m.fecha < :fechaFin)) AND " +
 		       "(:metodoPago IS NULL OR metodo.nombre = :metodoPago OR p IS NULL) " +
 		       "ORDER BY m.fecha DESC")
 		Page<Movimiento> filtrarMovimientos(
 		        @Param("idLocal") Long idLocal,
 		        @Param("tipoMovimiento") String tipoMovimiento,
 		        @Param("nroFicha") Long nroFicha,
-		        @Param("fecha") LocalDate fecha,
+		        @Param("fechaInicio") LocalDateTime fechaInicio,
+		        @Param("fechaFin") LocalDateTime fechaFin,
 		        @Param("metodoPago") String metodoPago,
 		        Pageable pageable
 		);
+	
+	@Query("SELECT DISTINCT m FROM Movimiento m " +
+			   "LEFT JOIN m.cajaMovimientos p " +
+		       "WHERE (:local IS NULL OR m.local.id = :local) " +
+		       "AND (cast(:fechaInicio as date) IS NULL OR m.fecha >= :fechaInicio) " +
+		       "AND (cast(:fechaFin as date) IS NULL OR m.fecha <= :fechaFin)")
+		List<Movimiento> filtrarMovimientos(
+		    @Param("local") Long local,
+		    @Param("fechaInicio") LocalDateTime fechaInicio,
+		    @Param("fechaFin") LocalDateTime fechaFin
+		);
+
 }

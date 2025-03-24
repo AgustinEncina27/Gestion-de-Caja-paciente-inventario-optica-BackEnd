@@ -23,6 +23,7 @@ import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.RestController;
 
+import com.springboot.backend.optica.dto.FiltroDTO;
 import com.springboot.backend.optica.modelo.Movimiento;
 import com.springboot.backend.optica.service.IMovimientoService;
 
@@ -105,6 +106,12 @@ public class MovimientoController {
         PageRequest pageable = PageRequest.of(page, size);
         Page<Movimiento> movimientos = movimientoService.findByTipoMovimiento(tipo, pageable);
         return ResponseEntity.ok(movimientos);
+    }
+    
+    @PostMapping("/total-ganado")
+    public ResponseEntity<Map<String, Double>> obtenerTotalGanado(@RequestBody FiltroDTO filtros) {
+        Map<String, Double> totales = movimientoService.calcularTotales(filtros);
+        return ResponseEntity.ok(totales);
     }
     
     @Secured("ROLE_ADMIN")

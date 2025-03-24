@@ -23,10 +23,27 @@ public class PdfController {
     private IMovimientoService movimientoService;
 
 
-	@GetMapping("/reporte/{idMovimiento}")
-	public ResponseEntity<byte[]> generarReporteMovimiento(@PathVariable Long idMovimiento) {
+	@GetMapping("/reporteCliente/{idMovimiento}")
+	public ResponseEntity<byte[]> generarReporteMovimientoCliete(@PathVariable Long idMovimiento) {
 	    try {
-	        byte[] pdf = movimientoService.generarReporteMovimiento(idMovimiento);
+	        byte[] pdf = movimientoService.generarReporteMovimientoCliente(idMovimiento);
+
+	        HttpHeaders headers = new HttpHeaders();
+	        headers.setContentType(MediaType.APPLICATION_PDF);
+	        headers.setContentDispositionFormData("attachment", "reporte_movimiento_" + idMovimiento + ".pdf");
+
+	        return ResponseEntity.ok()
+	                .headers(headers)
+	                .body(pdf);
+	    } catch (IOException e) {
+	        throw new RuntimeException("Error al generar el reporte PDF", e);
+	    }
+	}
+	
+	@GetMapping("/reporteOptica/{idMovimiento}")
+	public ResponseEntity<byte[]> generarReporteMovimientoOptica(@PathVariable Long idMovimiento) {
+	    try {
+	        byte[] pdf = movimientoService.generarReporteMovimientoOptica(idMovimiento);
 
 	        HttpHeaders headers = new HttpHeaders();
 	        headers.setContentType(MediaType.APPLICATION_PDF);

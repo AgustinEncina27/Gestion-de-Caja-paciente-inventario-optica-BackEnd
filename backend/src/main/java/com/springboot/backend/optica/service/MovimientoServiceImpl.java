@@ -2,6 +2,7 @@ package com.springboot.backend.optica.service;
 
 import java.io.IOException;
 import java.time.LocalDate;
+import java.time.LocalDateTime;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
@@ -16,6 +17,7 @@ import org.springframework.transaction.annotation.Transactional;
 import com.springboot.backend.optica.dao.IMetodoPagoDao;
 import com.springboot.backend.optica.dao.IMovimientoDao;
 import com.springboot.backend.optica.dao.IProductoLocalDao;
+import com.springboot.backend.optica.dto.FiltroDTO;
 import com.springboot.backend.optica.modelo.MetodoPago;
 import com.springboot.backend.optica.modelo.Movimiento;
 import com.springboot.backend.optica.modelo.ProductoLocal;
@@ -48,7 +50,14 @@ public class MovimientoServiceImpl implements IMovimientoService {
     @Transactional(readOnly = true)
     public Page<Movimiento> filtrarMovimientos(Long idLocal, String tipoMovimiento, Long nroFicha, LocalDate fecha, String metodoPago, Pageable pageable) {
         if(idLocal== null || idLocal==0)idLocal=null;
-    	return movimientoRepository.filtrarMovimientos(idLocal,tipoMovimiento,nroFicha,fecha,metodoPago, pageable);
+        if (fecha != null) {
+	        LocalDateTime fechaInicio = fecha.atStartOfDay(); // 2025-03-12 00:00:00
+	        LocalDateTime fechaFin = fecha.plusDays(1).atStartOfDay(); // 2025-03-13 00:00:00
+	
+	        return movimientoRepository.filtrarMovimientos(idLocal, tipoMovimiento, nroFicha, fechaInicio, fechaFin, metodoPago, pageable);
+        } else {
+            return movimientoRepository.filtrarMovimientos(idLocal, tipoMovimiento, nroFicha, null, null, metodoPago, pageable);
+        } 
     }
     
     @Override
@@ -105,6 +114,49 @@ public class MovimientoServiceImpl implements IMovimientoService {
 
         return totales;
     }
+    
+	@Override
+    @Transactional(readOnly = true)
+	public Map<String, Double> calcularTotales(FiltroDTO filtros) {
+	    // Obtener todos los métodos de pago
+	    List<MetodoPago> metodosPago = metodoPagoRepository.findAll();
+	    Map<String, Double> totales = new HashMap<>();
+	    Long localid=filtros.getLocal()==0?null:filtros.getLocal();
+
+	    // Inicializar los totales en 0 para cada método de pago
+	    for (MetodoPago metodoPago : metodosPago) {
+	        totales.put(metodoPago.getNombre(), 0.0);
+	    }
+	    	    
+	    LocalDateTime fechaInicio =  filtros.getFechaInicio().atStartOfDay(); 
+	    LocalDateTime fechaFin = filtros.getFechaFin().atTime(23, 59, 59);
+        	    
+	    // Obtener movimientos filtrados
+	    List<Movimiento> movimientos = movimientoRepository.filtrarMovimientos(
+	    		localid, fechaInicio, fechaFin
+	    );
+
+	    // Calcular los totales para cada método de pago, teniendo en cuenta el tipo de movimiento
+	    for (Movimiento movimiento : movimientos) {
+	        for (CajaMovimiento movimientoCaja : movimiento.getCajaMovimientos()) {
+	            String metodoPagoNombre = movimientoCaja.getMetodoPago().getNombre();
+	            if (totales.containsKey(metodoPagoNombre)) {
+	                double totalActual = totales.get(metodoPagoNombre);
+
+	                // Sumar o restar según el tipo de movimiento
+	                if ("ENTRADA".equalsIgnoreCase(movimiento.getTipoMovimiento())) {
+	                    totalActual += movimientoCaja.getMontoImpuesto();
+	                } else if ("SALIDA".equalsIgnoreCase(movimiento.getTipoMovimiento())) {
+	                    totalActual -= movimientoCaja.getMontoImpuesto();
+	                }
+
+	                totales.put(metodoPagoNombre, totalActual);
+	            }
+	        }
+	    }
+
+	    return totales;
+	}
 
 
     @Override
@@ -263,11 +315,22 @@ public class MovimientoServiceImpl implements IMovimientoService {
     
     @Override
     @Transactional(readOnly = true)
-    public byte[] generarReporteMovimiento(Long idMovimiento) throws IOException {
+    public byte[] generarReporteMovimientoCliente(Long idMovimiento) throws IOException {
         Movimiento movimiento = movimientoRepository.findById(idMovimiento)
             .orElseThrow(() -> new IllegalArgumentException("Movimiento no encontrado"));
 
-		return pdfService.generarReporteMovimiento(movimiento);
+		return pdfService.generarReporteMovimientoCliente(movimiento);
 		
     }
+    
+    @Override
+    @Transactional(readOnly = true)
+    public byte[] generarReporteMovimientoOptica(Long idMovimiento) throws IOException {
+        Movimiento movimiento = movimientoRepository.findById(idMovimiento)
+            .orElseThrow(() -> new IllegalArgumentException("Movimiento no encontrado"));
+
+		return pdfService.generarReporteMovimientoOptica(movimiento);
+		
+    }
+
 }

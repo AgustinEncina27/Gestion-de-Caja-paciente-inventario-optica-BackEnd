@@ -42,4 +42,5 @@ public interface IProductoDao extends JpaRepository<Producto, Long> {
 	       "AND p.marca.id = :marcaId " +
 	       "AND p.id != :productoId")
 	boolean existsByModeloAndMarca(@Param("modelo") String modelo, @Param("marcaId") Long marcaId, @Param("productoId") Long productoId);
+	
 }

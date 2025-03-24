@@ -28,6 +28,7 @@ import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.RestController;
 
+import com.springboot.backend.optica.dto.PacientesPorSucursalDTO;
 import com.springboot.backend.optica.modelo.Paciente;
 import com.springboot.backend.optica.service.IPacienteService;
 
@@ -99,7 +100,13 @@ public class PacienteController {
 	    }
 	    return new ResponseEntity<>(paciente, HttpStatus.OK);
 	}
-
+	
+	
+	@GetMapping("/pacientes/cantidad-por-sucursal")
+    public ResponseEntity<List<PacientesPorSucursalDTO>> obtenerCantidadPacientesPorSucursal() {
+        List<PacientesPorSucursalDTO> pacientes = pacienteService.obtenerCantidadPacientesPorSucursal();
+        return ResponseEntity.ok(pacientes);
+    }
 	
 	@Secured("ROLE_ADMIN")
 	@PostMapping("/pacientes")

@@ -2,6 +2,7 @@ package com.springboot.backend.optica.dao;
 
 
 
+import java.util.List;
 import java.util.Optional;
 
 import org.springframework.data.domain.Page;
@@ -29,5 +30,13 @@ public interface IPacienteDao extends JpaRepository<Paciente, Long> {
     
     @Query("SELECT COUNT(p) > 0  FROM Paciente p WHERE p.celular = :celular")
 	boolean existsByCelular(@Param("celular")String celular);
-
+    
+    
+    Page<Paciente> findAllByOrderByFicha(Pageable pageable);
+    
+    @Query("SELECT p.local.id, p.local.nombre, COUNT(p) " +
+            "FROM Paciente p " +
+            "GROUP BY p.local.id, p.local.nombre " +
+            "ORDER BY p.local.id")
+     List<Object[]> contarPacientesPorSucursal();
 }

@@ -5,6 +5,8 @@ import java.util.List;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
 
+import com.springboot.backend.optica.dto.StockPorMaterialDTO;
+import com.springboot.backend.optica.dto.StockTotalSucursalDTO;
 import com.springboot.backend.optica.modelo.Producto;
 
 
@@ -32,5 +34,8 @@ public interface IProductoService {
     public boolean existsByModeloAndMarca(String modelo, Long marcaId, Long id);
     
     public List<Producto> findByMarcaNoEstricto(String marca);
-		
+	
+    public List<StockTotalSucursalDTO> obtenerStockTotalPorSucursal();
+    
+    public List<StockPorMaterialDTO> obtenerStockPorMaterialYSucursal(Long localId);
 }

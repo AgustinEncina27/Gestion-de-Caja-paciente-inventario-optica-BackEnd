@@ -1,5 +1,6 @@
 package com.springboot.backend.optica.service;
 
+import java.util.ArrayList;
 import java.util.List;
 import java.util.Optional;
 
@@ -12,6 +13,8 @@ import org.springframework.transaction.annotation.Transactional;
 import com.springboot.backend.optica.dao.ILocalDao;
 import com.springboot.backend.optica.dao.IProductoDao;
 import com.springboot.backend.optica.dao.IProductoLocalDao;
+import com.springboot.backend.optica.dto.StockPorMaterialDTO;
+import com.springboot.backend.optica.dto.StockTotalSucursalDTO;
 import com.springboot.backend.optica.modelo.Local;
 import com.springboot.backend.optica.modelo.Producto;
 import com.springboot.backend.optica.modelo.ProductoLocal;
@@ -57,6 +60,23 @@ public class ProductoServiceImp implements IProductoService {
 	public List<ProductoLocal> getStockByLocal(Long localId) {
         return productoLocalRepository.findByLocalId(localId);
 	}
+	
+	@Override
+	@Transactional(readOnly = true)
+	public List<StockPorMaterialDTO> obtenerStockPorMaterialYSucursal(Long localId) {
+        List<Object[]> resultados = productoLocalRepository.obtenerStockPorMaterialYSucursal(localId);
+        List<StockPorMaterialDTO> stockPorMaterial = new ArrayList<>();
+
+        for (Object[] fila : resultados) {
+            StockPorMaterialDTO dto = new StockPorMaterialDTO(
+                (String) fila[0],               // materialNombre
+                ((Number) fila[1]).intValue()    // stockTotal
+            );
+            stockPorMaterial.add(dto);
+        }
+
+        return stockPorMaterial;
+    }
 	
 	@Override
 	@Transactional(readOnly = true)
@@ -155,6 +175,24 @@ public class ProductoServiceImp implements IProductoService {
 	public boolean existsByModeloAndMarca(String modelo, Long marcaId, Long id) {
 	    return productoDao.existsByModeloAndMarca(modelo, marcaId,id);
 	}
+	
+	@Override
+	@Transactional(readOnly = true)
+	public List<StockTotalSucursalDTO> obtenerStockTotalPorSucursal() {
+        List<Object[]> resultados = productoLocalRepository.obtenerStockTotalPorSucursal();
+        List<StockTotalSucursalDTO> stockPorSucursal = new ArrayList<>();
+
+        for (Object[] fila : resultados) {
+            StockTotalSucursalDTO dto = new StockTotalSucursalDTO(
+                ((Number) fila[0]).longValue(),  // localId
+                (String) fila[1],               // localNombre
+                ((Number) fila[2]).intValue()    // stockTotal
+            );
+            stockPorSucursal.add(dto);
+        }
+
+        return stockPorSucursal;
+    }
 
 	@Override
 	@Transactional

@@ -24,8 +24,11 @@ import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.PutMapping;
 import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
+import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.RestController;
 
+import com.springboot.backend.optica.dto.StockPorMaterialDTO;
+import com.springboot.backend.optica.dto.StockTotalSucursalDTO;
 import com.springboot.backend.optica.modelo.Producto;
 import com.springboot.backend.optica.service.IProductoService;
 
@@ -112,6 +115,20 @@ public class ProductoController {
 		}
 		return new ResponseEntity<Producto>(producto, HttpStatus.OK);
 	}
+	
+	@GetMapping("/productos/stock-total-sucursal")
+    public ResponseEntity<List<StockTotalSucursalDTO>> obtenerStockTotalPorSucursal() {
+        List<StockTotalSucursalDTO> stock = productoService.obtenerStockTotalPorSucursal();
+        return ResponseEntity.ok(stock);
+    }
+	
+	@GetMapping("/productos/stock-material")
+    public ResponseEntity<List<StockPorMaterialDTO>> obtenerStockPorMaterialYSucursal(
+        @RequestParam Long localId) {
+        
+        List<StockPorMaterialDTO> stock = productoService.obtenerStockPorMaterialYSucursal(localId);
+        return ResponseEntity.ok(stock);
+    }
 		
 	@Secured("ROLE_ADMIN")
 	@PostMapping("/productos")

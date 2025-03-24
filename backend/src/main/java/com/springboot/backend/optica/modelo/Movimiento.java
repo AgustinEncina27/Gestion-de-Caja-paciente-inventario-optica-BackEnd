@@ -1,7 +1,7 @@
 package com.springboot.backend.optica.modelo;
 
 import java.io.Serializable;
-import java.time.LocalDate;
+import java.time.LocalDateTime;
 import java.util.List;
 
 import javax.persistence.*;
@@ -23,7 +23,7 @@ public class Movimiento implements Serializable {
     private String tipoMovimiento; // ENTRADA o SALIDA
 
     @Column(nullable = false)
-    private LocalDate fecha;
+    private LocalDateTime  fecha;
 
     @Column(nullable = false)
     private double total;
