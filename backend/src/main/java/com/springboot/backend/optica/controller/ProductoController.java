@@ -15,6 +15,7 @@ import org.springframework.data.domain.Pageable;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.access.annotation.Secured;
+import org.springframework.security.core.Authentication;
 import org.springframework.validation.BindingResult;
 import org.springframework.web.bind.annotation.CrossOrigin;
 import org.springframework.web.bind.annotation.DeleteMapping;
@@ -31,6 +32,7 @@ import com.springboot.backend.optica.dto.StockPorMaterialDTO;
 import com.springboot.backend.optica.dto.StockTotalSucursalDTO;
 import com.springboot.backend.optica.modelo.Producto;
 import com.springboot.backend.optica.service.IProductoService;
+import com.springboot.backend.optica.util.AuthUtils;
 
 
 
@@ -41,6 +43,8 @@ public class ProductoController {
 	
 	@Autowired
 	private IProductoService productoService;
+	@Autowired
+	private AuthUtils authUtils;
 		
 	@GetMapping("/productos")
 	public List<Producto> index() {
@@ -48,9 +52,22 @@ public class ProductoController {
 	}
 	
 	@GetMapping("/productos/page/{page}")
-	public Page<Producto> index(@PathVariable Integer page) {
+	public Page<Producto> index(Authentication authentication,
+			@PathVariable Integer page) {
+		
+		Long idLocalUser = authUtils.obtenerLocalIdDesdeToken(authentication);
+ 	    String rol = authUtils.obtenerRolDesdeToken(authentication);
+		
 		Pageable pageable = PageRequest.of(page,12);
-		return productoService.findAllProducto(pageable);
+		
+		Page<Producto> productos;
+		
+		if ("ROLE_ADMIN".equals(rol)) {
+			productos = productoService.findAllProducto(pageable);
+ 	    } else {
+ 	    	productos= productoService.findAllByLocal(idLocalUser, pageable); // Solo los de su local
+ 	    }
+		return productos;
 	}
 	
 	@GetMapping("/productos/buscar-por-modelo/{modelo}")
@@ -72,11 +89,24 @@ public class ProductoController {
 	}
 	
 	@GetMapping("/productos/marca/{marca}")
-	public ResponseEntity<List<Producto>> getProductosPorMarcaNoEstricto(@PathVariable String marca) {
-	    List<Producto> productos = productoService.findByMarcaNoEstricto(marca);
+	public ResponseEntity<List<Producto>> getProductosPorMarcaNoEstricto(Authentication authentication,
+	                                                                      @PathVariable String marca) {
+
+	    Long idLocalUser = authUtils.obtenerLocalIdDesdeToken(authentication);
+	    String rol = authUtils.obtenerRolDesdeToken(authentication);
+
+	    List<Producto> productos;
+
+	    if ("ROLE_ADMIN".equals(rol)) {
+	        productos = productoService.findByMarcaNoEstricto(marca); // 👈 método existente
+	    } else {
+	        productos = productoService.findByMarcaAndLocalNoEstricto(marca, idLocalUser); // 👈 nuevo método
+	    }
+
 	    if (productos.isEmpty()) {
 	        return ResponseEntity.notFound().build();
 	    }
+
 	    return ResponseEntity.ok(productos);
 	}
 	

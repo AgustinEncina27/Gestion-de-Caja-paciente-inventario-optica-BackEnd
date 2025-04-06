@@ -13,6 +13,9 @@ import org.springframework.security.oauth2.config.annotation.web.configurers.Aut
 import org.springframework.security.oauth2.config.annotation.web.configurers.AuthorizationServerSecurityConfigurer;
 import org.springframework.security.oauth2.provider.token.store.JwtAccessTokenConverter;
 import org.springframework.security.oauth2.provider.token.store.JwtTokenStore;
+import org.springframework.security.oauth2.provider.token.TokenEnhancerChain;
+import java.util.Arrays;
+
 
 @Configuration
 @EnableAuthorizationServer
@@ -20,6 +23,9 @@ public class AuthorizationserverConfig extends AuthorizationServerConfigurerAdap
 
 	@Autowired
 	private BCryptPasswordEncoder passwordEncoder;
+	
+	@Autowired
+	private InfoAdicionalToken infoAdicionalToken;
 	
 	@Autowired
 	@Qualifier("authenticationManager")
@@ -47,9 +53,15 @@ public class AuthorizationserverConfig extends AuthorizationServerConfigurerAdap
 
 	@Override
 	public void configure(AuthorizationServerEndpointsConfigurer endpoints) throws Exception {
-		endpoints.authenticationManager(authenticationManager)
-		.tokenStore(tokenStore())
-		.accessTokenConverter(accessTokenConverter());
+	    TokenEnhancerChain enhancerChain = new TokenEnhancerChain();
+	    enhancerChain.setTokenEnhancers(
+	        Arrays.asList(infoAdicionalToken, accessTokenConverter()) // El orden es importante
+	    );
+
+	    endpoints.authenticationManager(authenticationManager)
+	             .tokenStore(tokenStore())
+	             .accessTokenConverter(accessTokenConverter())
+	             .tokenEnhancer(enhancerChain);
 	}
 
 	@Bean

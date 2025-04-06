@@ -25,5 +25,5 @@ public interface IMovimientoService {
 	Page<Movimiento> filtrarMovimientos(Long idLocal, String tipoMovimiento, Long nroFicha, LocalDate fecha, String metodoPago, Pageable pageable);
 	byte[] generarReporteMovimientoCliente(Long idMovimiento)throws IOException;
 	byte[] generarReporteMovimientoOptica(Long idMovimiento)throws IOException;
-	Map<String, Double> calcularTotales(FiltroDTO filtros);
+	public Map<String, Map<String, Double>> calcularTotales(FiltroDTO filtros);
 }

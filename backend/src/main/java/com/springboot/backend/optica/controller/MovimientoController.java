@@ -22,10 +22,13 @@ import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.RestController;
+import org.springframework.security.core.Authentication;
+
 
 import com.springboot.backend.optica.dto.FiltroDTO;
 import com.springboot.backend.optica.modelo.Movimiento;
 import com.springboot.backend.optica.service.IMovimientoService;
+import com.springboot.backend.optica.util.AuthUtils;
 
 @CrossOrigin
 @RestController
@@ -34,6 +37,8 @@ public class MovimientoController {
 
 	@Autowired
     private IMovimientoService movimientoService;
+	@Autowired
+	private AuthUtils authUtils;
 
     @GetMapping
     public List<Movimiento> getAllMovimientos() {
@@ -49,6 +54,7 @@ public class MovimientoController {
  	
  	@GetMapping("/filtrar")
  	public ResponseEntity<Page<Movimiento>> filtrarMovimientos(
+ 			Authentication authentication,
  	        @RequestParam(required = false) Long idLocal,
  	        @RequestParam(required = false) String tipoMovimiento,
  	        @RequestParam(required = false) Long nroFicha,
@@ -57,10 +63,18 @@ public class MovimientoController {
  	        @RequestParam(defaultValue = "0") int page,
  	        @RequestParam(defaultValue = "10") int size) {
  		 		
+ 		Long idLocalUser = authUtils.obtenerLocalIdDesdeToken(authentication);
+ 	    String rol = authUtils.obtenerRolDesdeToken(authentication);
+ 		
  	    Pageable pageable = PageRequest.of(page, size);
+ 	    Page<Movimiento> movimientos;
 
- 	    // Valida que todos los parámetros opcionales sean manejados correctamente
- 	    Page<Movimiento> movimientos = movimientoService.filtrarMovimientos(idLocal, tipoMovimiento, nroFicha, fecha, metodoPago, pageable);
+ 	    if ("ROLE_ADMIN".equals(rol)) {
+ 	        movimientos = movimientoService.filtrarMovimientos(idLocal, tipoMovimiento, nroFicha, fecha, metodoPago, pageable);
+ 	    } else {
+ 	        movimientos = movimientoService.filtrarMovimientos(idLocalUser, tipoMovimiento, nroFicha, fecha, metodoPago, pageable);
+ 	    }
+
  	    return ResponseEntity.ok(movimientos);
  	}
 
@@ -109,8 +123,8 @@ public class MovimientoController {
     }
     
     @PostMapping("/total-ganado")
-    public ResponseEntity<Map<String, Double>> obtenerTotalGanado(@RequestBody FiltroDTO filtros) {
-        Map<String, Double> totales = movimientoService.calcularTotales(filtros);
+    public ResponseEntity<Map<String, Map<String, Double>>> obtenerTotalGanado(@RequestBody FiltroDTO filtros) {
+        Map<String, Map<String, Double>> totales = movimientoService.calcularTotales(filtros);
         return ResponseEntity.ok(totales);
     }
     

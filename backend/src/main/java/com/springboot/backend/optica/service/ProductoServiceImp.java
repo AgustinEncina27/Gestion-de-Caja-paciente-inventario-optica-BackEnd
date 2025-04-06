@@ -56,9 +56,21 @@ public class ProductoServiceImp implements IProductoService {
 	    return productos;
 	}
 	
+	@Override
+	@Transactional(readOnly = true)
+	public Page<Producto> findAllByLocal(Long localId, Pageable pageable) {
+		return productoDao.findProductosByLocalId(localId, pageable);
+	}
+	
 	@Transactional(readOnly = true)
 	public List<ProductoLocal> getStockByLocal(Long localId) {
         return productoLocalRepository.findByLocalId(localId);
+	}
+	
+	@Override
+	@Transactional(readOnly = true)
+	public List<Producto> findByMarcaAndLocalNoEstricto(String marca, Long localId) {
+	    return productoDao.findByMarcaAndLocalNoEstricto(marca, localId);
 	}
 	
 	@Override
@@ -230,5 +242,7 @@ public class ProductoServiceImp implements IProductoService {
 		Producto note = productoDao.findById(id).get();
 		productoDao.delete(note);
 	}
+
+
 
 }

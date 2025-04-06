@@ -117,40 +117,41 @@ public class MovimientoServiceImpl implements IMovimientoService {
     
 	@Override
     @Transactional(readOnly = true)
-	public Map<String, Double> calcularTotales(FiltroDTO filtros) {
+	public Map<String, Map<String, Double>> calcularTotales(FiltroDTO filtros) {
 	    // Obtener todos los métodos de pago
 	    List<MetodoPago> metodosPago = metodoPagoRepository.findAll();
-	    Map<String, Double> totales = new HashMap<>();
-	    Long localid=filtros.getLocal()==0?null:filtros.getLocal();
+	    Map<String, Map<String, Double>> totales = new HashMap<>();
+	    Long localid = filtros.getLocal() == 0 ? null : filtros.getLocal();
 
-	    // Inicializar los totales en 0 para cada método de pago
+	    // Inicializar las entradas y salidas en 0.0 para cada método de pago
 	    for (MetodoPago metodoPago : metodosPago) {
-	        totales.put(metodoPago.getNombre(), 0.0);
+	        Map<String, Double> entradaSalida = new HashMap<>();
+	        entradaSalida.put("entrada", 0.0);
+	        entradaSalida.put("salida", 0.0);
+	        totales.put(metodoPago.getNombre(), entradaSalida);
 	    }
-	    	    
-	    LocalDateTime fechaInicio =  filtros.getFechaInicio().atStartOfDay(); 
+
+	    LocalDateTime fechaInicio = filtros.getFechaInicio().atStartOfDay();
 	    LocalDateTime fechaFin = filtros.getFechaFin().atTime(23, 59, 59);
-        	    
+
 	    // Obtener movimientos filtrados
 	    List<Movimiento> movimientos = movimientoRepository.filtrarMovimientos(
-	    		localid, fechaInicio, fechaFin
+	            localid, fechaInicio, fechaFin
 	    );
 
-	    // Calcular los totales para cada método de pago, teniendo en cuenta el tipo de movimiento
+	    // Calcular las entradas y salidas por método de pago
 	    for (Movimiento movimiento : movimientos) {
 	        for (CajaMovimiento movimientoCaja : movimiento.getCajaMovimientos()) {
 	            String metodoPagoNombre = movimientoCaja.getMetodoPago().getNombre();
 	            if (totales.containsKey(metodoPagoNombre)) {
-	                double totalActual = totales.get(metodoPagoNombre);
+	                Map<String, Double> entradaSalida = totales.get(metodoPagoNombre);
+	                double monto = movimientoCaja.getMontoImpuesto();
 
-	                // Sumar o restar según el tipo de movimiento
 	                if ("ENTRADA".equalsIgnoreCase(movimiento.getTipoMovimiento())) {
-	                    totalActual += movimientoCaja.getMontoImpuesto();
+	                    entradaSalida.put("entrada", entradaSalida.get("entrada") + monto);
 	                } else if ("SALIDA".equalsIgnoreCase(movimiento.getTipoMovimiento())) {
-	                    totalActual -= movimientoCaja.getMontoImpuesto();
+	                    entradaSalida.put("salida", entradaSalida.get("salida") + monto);
 	                }
-
-	                totales.put(metodoPagoNombre, totalActual);
 	            }
 	        }
 	    }

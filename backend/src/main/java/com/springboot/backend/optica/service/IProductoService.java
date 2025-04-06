@@ -38,4 +38,9 @@ public interface IProductoService {
     public List<StockTotalSucursalDTO> obtenerStockTotalPorSucursal();
     
     public List<StockPorMaterialDTO> obtenerStockPorMaterialYSucursal(Long localId);
+    
+    public Page<Producto> findAllByLocal(Long localId, Pageable pageable);
+    
+    public List<Producto> findByMarcaAndLocalNoEstricto(String marca, Long localId);
+
 }

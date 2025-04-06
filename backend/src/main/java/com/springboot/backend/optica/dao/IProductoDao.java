@@ -14,6 +14,13 @@ import com.springboot.backend.optica.modelo.Producto;
 
 public interface IProductoDao extends JpaRepository<Producto, Long> {
 	
+	@Query("SELECT pl.producto FROM ProductoLocal pl WHERE pl.local.id = :localId")
+	Page<Producto> findProductosByLocalId(@Param("localId") Long localId, Pageable pageable);
+	
+	@Query("SELECT pl.producto FROM ProductoLocal pl WHERE pl.local.id = :localId AND LOWER(pl.producto.marca.nombre) LIKE LOWER(CONCAT('%', :marca, '%'))")
+	List<Producto> findByMarcaAndLocalNoEstricto(@Param("marca") String marca, @Param("localId") Long localId);
+
+	
 	@Query("SELECT p FROM Producto p WHERE LOWER(p.modelo) = LOWER(:modelo)")
 	List<Producto> findByModelo(@Param("modelo") String modelo);
 	

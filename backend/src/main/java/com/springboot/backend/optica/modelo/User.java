@@ -13,8 +13,11 @@ import javax.persistence.Id;
 import javax.persistence.JoinColumn;
 import javax.persistence.JoinTable;
 import javax.persistence.ManyToMany;
+import javax.persistence.ManyToOne;
 import javax.persistence.Table;
 import javax.persistence.UniqueConstraint;
+
+
 import lombok.Data;
 
 @Entity
@@ -31,6 +34,11 @@ public class User implements Serializable {
 
 	@Column(length = 60)
 	private String password;
+	
+	// Relación con Local
+    @ManyToOne(fetch = FetchType.EAGER)
+    @JoinColumn(name = "local_id")
+    private Local local;
 
 	private Boolean enabled;
 
