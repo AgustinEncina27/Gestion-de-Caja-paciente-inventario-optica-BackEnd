@@ -25,7 +25,7 @@ public class AuthUtils {
         DefaultOAuth2AccessToken accessToken = (DefaultOAuth2AccessToken) tokenStore.readAccessToken(token);
         Map<String, Object> info = accessToken.getAdditionalInformation();
 
-        if (info.containsKey("local_id")) {
+        if (info.containsKey("local_id") && info.get("local_id")!=null) {
             return Long.valueOf(info.get("local_id").toString());
         }
 
