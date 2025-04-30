@@ -469,6 +469,7 @@ public class PdfService implements IPdfService {
                 contentStream.showText("       Adeuda: " + deuda);
                 contentStream.newLine();
                 
+                contentStream.endText();
             }
 
             ByteArrayOutputStream out = new ByteArrayOutputStream();
