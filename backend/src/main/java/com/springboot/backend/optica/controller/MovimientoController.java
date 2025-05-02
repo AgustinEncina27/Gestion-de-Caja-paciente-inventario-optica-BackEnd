@@ -1,6 +1,7 @@
 package com.springboot.backend.optica.controller;
 
 import java.time.LocalDate;
+import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 
@@ -120,6 +121,14 @@ public class MovimientoController {
         PageRequest pageable = PageRequest.of(page, size);
         Page<Movimiento> movimientos = movimientoService.findByTipoMovimiento(tipo, pageable);
         return ResponseEntity.ok(movimientos);
+    }
+    
+    @PostMapping("/total-vendido")
+    public ResponseEntity<Map<String, Integer>> obtenerCantidadTotalVendida(@RequestBody FiltroDTO filtros) {
+        int total = movimientoService.obtenerCantidadTotalVendida(filtros);
+        Map<String, Integer> response = new HashMap<>();
+        response.put("total", total);
+        return ResponseEntity.ok(response);
     }
     
     @PostMapping("/total-ganado")

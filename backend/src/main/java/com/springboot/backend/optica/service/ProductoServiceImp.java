@@ -19,12 +19,6 @@ import com.springboot.backend.optica.modelo.Local;
 import com.springboot.backend.optica.modelo.Producto;
 import com.springboot.backend.optica.modelo.ProductoLocal;
 
-import org.apache.poi.ss.usermodel.Row;
-import org.apache.poi.ss.usermodel.Sheet;
-import org.apache.poi.ss.usermodel.Workbook;
-import org.apache.poi.xssf.usermodel.XSSFWorkbook;
-
-import java.io.ByteArrayOutputStream;
 import java.io.IOException;
 
 import com.springboot.backend.optica.service.ProductoServiceImp;
@@ -40,6 +34,9 @@ public class ProductoServiceImp implements IProductoService {
 	
 	@Autowired
 	private ILocalDao localRepository; 
+	
+	@Autowired
+	private ExcelServiceImp excelService;
 		
 	@Override
 	@Transactional(readOnly = true)
@@ -123,63 +120,11 @@ public class ProductoServiceImp implements IProductoService {
 		return productoDao.findById(id).orElse(null);
 	}
 	
+	@Override
 	@Transactional(readOnly = true)
 	public byte[] exportStockToExcel(Long localId) throws IOException {
-	    // Obtener todos los productos y el stock del local
 	    List<ProductoLocal> productoLocales = productoLocalRepository.findByLocalId(localId);
-
-		// Ordenar los productos por modelo
-    	productoLocales.sort((p1, p2) -> p1.getProducto().getModelo().compareToIgnoreCase(p2.getProducto().getModelo()));
-
-	    // Crear el archivo Excel
-	    ByteArrayOutputStream out = new ByteArrayOutputStream();
-	    Workbook workbook = new XSSFWorkbook();
-
-	    // Crear la hoja de Excel
-	    Sheet sheet = workbook.createSheet("Stock Local");
-
-	    // Crear encabezados
-	    Row headerRow = sheet.createRow(0);
-	    headerRow.createCell(0).setCellValue("Modelo");
-	    headerRow.createCell(1).setCellValue("Marca");
-	    headerRow.createCell(2).setCellValue("Costo");
-	    headerRow.createCell(3).setCellValue("Precio");
-	    headerRow.createCell(4).setCellValue("Stock");
-
-	    // Llenar datos
-	    int rowNum = 1;
-	    for (ProductoLocal productoLocal : productoLocales) {
-	        
-	    	if(productoLocal.getStock()>0) {
-	    		 Producto producto = productoLocal.getProducto();
-	 	        
-	 	        Row row = sheet.createRow(rowNum++);
-	 	        row.createCell(0).setCellValue(producto.getModelo());
-	 	        row.createCell(1).setCellValue(producto.getMarca().getNombre());
-	 	        if(producto.getCosto()!=null) {
-	 		        row.createCell(2).setCellValue(producto.getCosto());
-	 	        }else {
-	 		        row.createCell(2).setCellValue(0);
-	 	        }
-
-	 	        row.createCell(3).setCellValue(producto.getPrecio());
-	 	        row.createCell(4).setCellValue(productoLocal.getStock());
-	    	}
-	       
-	    }
-
-	    // Ajustar tamaño de columnas de forma manual
-	    sheet.setColumnWidth(0, 6000); // Modelo
-	    sheet.setColumnWidth(1, 4000); // Marca
-	    sheet.setColumnWidth(2, 3000); // Costo
-	    sheet.setColumnWidth(3, 3000); // Precio
-	    sheet.setColumnWidth(4, 3000); // Stock
-
-	    // Escribir en el output stream
-	    workbook.write(out);
-	    workbook.close();
-
-	    return out.toByteArray();
+	    return excelService.generarExcelStockPorLocal(productoLocales);
 	}
 	
 	@Override

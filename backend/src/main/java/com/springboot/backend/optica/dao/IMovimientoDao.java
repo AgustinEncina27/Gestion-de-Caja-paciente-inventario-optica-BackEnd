@@ -56,5 +56,5 @@ public interface IMovimientoDao extends JpaRepository<Movimiento, Long> {
 		    @Param("fechaInicio") LocalDateTime fechaInicio,
 		    @Param("fechaFin") LocalDateTime fechaFin
 		);
-
+	
 }

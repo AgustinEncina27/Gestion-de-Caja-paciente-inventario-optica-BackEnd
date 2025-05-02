@@ -268,14 +268,17 @@ public class PdfService implements IPdfService {
                 //INFORMACION DEL PACIENTE
                 if(movimiento.getPaciente() != null) {
                 	contentStream.showText("Número de Ficha:"+movimiento.getPaciente().getFicha());
-                    contentStream.newLine();	
+                    contentStream.newLine();
+                    contentStream.showText("Paciente: " + (movimiento.getPaciente().getNombreCompleto() != null ? movimiento.getPaciente().getNombreCompleto() : "No especificado"));
+                    contentStream.newLine();
+                    contentStream.showText("Celular: " + (movimiento.getPaciente().getCelular() != null ? movimiento.getPaciente().getCelular() : "No especificado"));
+                    contentStream.newLine();
+                    contentStream.showText("Domicilio: " + (movimiento.getPaciente().getDireccion() != null ? movimiento.getPaciente().getDireccion() : "No especificado"));
+                    contentStream.newLine();
+                    contentStream.showText("Obra Social: " + (movimiento.getPaciente().getObraSocial() != null ? movimiento.getPaciente().getObraSocial() : "No especificado"));
+                    contentStream.newLine();
                 }
-                contentStream.showText("Paciente: " + (movimiento.getPaciente() != null ? movimiento.getPaciente().getNombreCompleto() : "No especificado"));
-                contentStream.newLine();
-                contentStream.showText("Celular: " + (movimiento.getPaciente() != null ? movimiento.getPaciente().getCelular() : "No especificado"));
-                contentStream.newLine();
-                contentStream.showText("Domicilio: " + (movimiento.getPaciente() != null ? movimiento.getPaciente().getDireccion() : "No especificado"));
-                contentStream.newLine();
+                
                 contentStream.setFont(PDType1Font.HELVETICA_BOLD, 12);
                 contentStream.showText("Graduaciones");
                 contentStream.newLine();
@@ -415,7 +418,9 @@ public class PdfService implements IPdfService {
                 contentStream.newLine();
                 if(movimiento.getPaciente() != null) {
                 	contentStream.showText("Número de Ficha:"+movimiento.getPaciente().getFicha()+"     Paciente: " + (movimiento.getPaciente() != null ? movimiento.getPaciente().getNombreCompleto() : "No especificado"));
-                    contentStream.newLine();	
+                    contentStream.newLine();
+                    contentStream.showText("Obra Social: " + (movimiento.getPaciente().getObraSocial() != null ? movimiento.getPaciente().getObraSocial() : "No especificado"));
+                    contentStream.newLine();
                 }
                 
                 

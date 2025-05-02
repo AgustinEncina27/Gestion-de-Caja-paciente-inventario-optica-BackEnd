@@ -17,6 +17,7 @@ public interface IMovimientoService {
     Movimiento create(Movimiento movimiento);
     Movimiento update(Long id,Movimiento movimiento);
     void delete(Long id);
+    public int obtenerCantidadTotalVendida(FiltroDTO filtros);
     Page<Movimiento> findByFechaBetween(LocalDate fechaInicio, LocalDate fechaFin, Pageable pageable);
     Page<Movimiento> findByTipoMovimiento(String tipo, Pageable pageable);
 	Page<Movimiento> findAllMovimiento(Pageable pageable);
@@ -26,4 +27,5 @@ public interface IMovimientoService {
 	byte[] generarReporteMovimientoCliente(Long idMovimiento)throws IOException;
 	byte[] generarReporteMovimientoOptica(Long idMovimiento)throws IOException;
 	public Map<String, Map<String, Double>> calcularTotales(FiltroDTO filtros);
+	public byte[] exportarExcelProductosVendidos(FiltroDTO filtros) throws IOException;
 }

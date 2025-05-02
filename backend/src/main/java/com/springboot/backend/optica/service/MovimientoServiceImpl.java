@@ -4,9 +4,11 @@ import java.io.IOException;
 import java.time.LocalDate;
 import java.time.LocalDateTime;
 import java.util.HashMap;
+import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.Optional;
+import java.util.stream.Collectors;
 
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.data.domain.Page;
@@ -20,6 +22,7 @@ import com.springboot.backend.optica.dao.IProductoLocalDao;
 import com.springboot.backend.optica.dto.FiltroDTO;
 import com.springboot.backend.optica.modelo.MetodoPago;
 import com.springboot.backend.optica.modelo.Movimiento;
+import com.springboot.backend.optica.modelo.Producto;
 import com.springboot.backend.optica.modelo.ProductoLocal;
 import com.springboot.backend.optica.modelo.CajaMovimiento;
 import com.springboot.backend.optica.modelo.DetalleAdicional;
@@ -39,6 +42,9 @@ public class MovimientoServiceImpl implements IMovimientoService {
     
     @Autowired
     private IProductoLocalDao  productoLocalRepository;
+    
+    @Autowired
+    private ExcelServiceImp excelService;
 
     @Override
     @Transactional(readOnly = true)
@@ -158,7 +164,61 @@ public class MovimientoServiceImpl implements IMovimientoService {
 
 	    return totales;
 	}
+	
+	@Override
+	@Transactional(readOnly = true)
+	public byte[] exportarExcelProductosVendidos(FiltroDTO filtros) throws IOException {
+	    Long localId = filtros.getLocal() == 0 ? null : filtros.getLocal();
+	    LocalDateTime fechaInicio = filtros.getFechaInicio().atStartOfDay();
+	    LocalDateTime fechaFin = filtros.getFechaFin().atTime(23, 59, 59);
 
+	    List<Movimiento> movimientos = movimientoRepository.filtrarMovimientos(localId, fechaInicio, fechaFin);
+
+	    List<DetalleMovimiento> detalles = movimientos.stream()
+	        .filter(m -> "ENTRADA".equalsIgnoreCase(m.getTipoMovimiento()))
+	        .flatMap(m -> m.getDetalles().stream())
+	        .collect(Collectors.toList());
+
+	    // Paso 1: Agrupar cantidades
+	    Map<Producto, Integer> resumen = new HashMap<>();
+	    for (DetalleMovimiento detalle : detalles) {
+	        Producto producto = detalle.getProducto();
+	        resumen.put(producto, resumen.getOrDefault(producto, 0) + detalle.getCantidad());
+	    }
+
+	    // Paso 2: Ordenar por cantidad descendente y enviar al ExcelService
+	    LinkedHashMap<Producto, Integer> resumenOrdenado = resumen.entrySet().stream()
+	        .sorted(Map.Entry.<Producto, Integer>comparingByValue().reversed())
+	        .collect(Collectors.toMap(
+	            Map.Entry::getKey,
+	            Map.Entry::getValue,
+	            (e1, e2) -> e1,
+	            LinkedHashMap::new
+	        ));
+
+	    return excelService.generarExcelProductosVendidos(resumenOrdenado);
+	}
+	
+	@Override
+	@Transactional(readOnly = true)
+	public int obtenerCantidadTotalVendida(FiltroDTO filtros) {
+	    Long localId = filtros.getLocal() == 0 ? null : filtros.getLocal();
+
+	    LocalDateTime fechaInicio = filtros.getFechaInicio().atStartOfDay();
+	    LocalDateTime fechaFin = filtros.getFechaFin().atTime(23, 59, 59);
+
+	    // Reutilizamos el método que ya tenés
+	    List<Movimiento> movimientos = movimientoRepository.filtrarMovimientos(
+	            localId, fechaInicio, fechaFin
+	    );
+
+	    // Filtrar solo los movimientos de tipo ENTRADA
+	    return movimientos.stream()
+	            .filter(m -> "ENTRADA".equalsIgnoreCase(m.getTipoMovimiento()))
+	            .flatMap(m -> m.getDetalles().stream())
+	            .mapToInt(detalle -> detalle.getCantidad())
+	            .sum();
+	}
 
     @Override
     @Transactional(readOnly = true)
@@ -178,7 +238,7 @@ public class MovimientoServiceImpl implements IMovimientoService {
     public Page<Movimiento> findByFechaBetween(LocalDate fechaInicio, LocalDate fechaFin, Pageable pageable) {
         return movimientoRepository.findByFechaBetween(fechaInicio, fechaFin, pageable);
     }
-
+        
     @Override
 	@Transactional
     public Movimiento create(Movimiento movimiento) {
@@ -333,5 +393,7 @@ public class MovimientoServiceImpl implements IMovimientoService {
 		return pdfService.generarReporteMovimientoOptica(movimiento);
 		
     }
+
+
 
 }

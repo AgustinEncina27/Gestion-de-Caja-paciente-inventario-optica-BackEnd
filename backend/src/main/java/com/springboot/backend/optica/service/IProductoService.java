@@ -1,5 +1,6 @@
 package com.springboot.backend.optica.service;
 
+import java.io.IOException;
 import java.util.List;
 
 import org.springframework.data.domain.Page;
@@ -42,5 +43,7 @@ public interface IProductoService {
     public Page<Producto> findAllByLocal(Long localId, Pageable pageable);
     
     public List<Producto> findByMarcaAndLocalNoEstricto(String marca, Long localId);
+    
+    public byte[] exportStockToExcel(Long localId) throws IOException;
 
 }

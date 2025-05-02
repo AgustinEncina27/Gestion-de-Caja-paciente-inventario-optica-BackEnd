@@ -27,6 +27,9 @@ public class Paciente implements Serializable {
     
     @Column
     private String direccion;
+    
+    @Column
+    private String obraSocial;
 
     @Column(length = 20)
     private String celular;

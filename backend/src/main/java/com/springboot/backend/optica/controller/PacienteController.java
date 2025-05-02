@@ -196,6 +196,7 @@ public class PacienteController {
 			
 			currentPaciente.setNombreCompleto(paciente.getNombreCompleto());
 			currentPaciente.setDireccion(paciente.getDireccion());
+			currentPaciente.setObraSocial(paciente.getObraSocial());
 			currentPaciente.setCelular(paciente.getCelular());
 			currentPaciente.setGenero(paciente.getGenero());
 			currentPaciente.setLocal(paciente.getLocal());
