@@ -69,6 +69,9 @@ public class ExcelServiceImp {
 	    header.createCell(0).setCellValue("Modelo");
 	    header.createCell(1).setCellValue("Marca");
 	    header.createCell(2).setCellValue("Cantidad Vendida");
+	    header.createCell(3).setCellValue("Costo");
+	    header.createCell(4).setCellValue("Precio");
+	    header.createCell(5).setCellValue("Ganancia");
 
 	    int rowIdx = 1;
 	    for (Map.Entry<Producto, Integer> entry : resumen.entrySet()) {
@@ -76,14 +79,25 @@ public class ExcelServiceImp {
 	        int cantidad = entry.getValue();
 
 	        Row row = sheet.createRow(rowIdx++);
+
+	        double costo = p.getCosto() != null ? p.getCosto() : 0.0;
+	        double precio = p.getPrecio();
+	        double ganancia = (precio - costo) * cantidad;
+
 	        row.createCell(0).setCellValue(p.getModelo());
 	        row.createCell(1).setCellValue(p.getMarca().getNombre());
 	        row.createCell(2).setCellValue(cantidad);
+	        row.createCell(3).setCellValue(costo);
+	        row.createCell(4).setCellValue(precio);
+	        row.createCell(5).setCellValue(ganancia);
 	    }
 
 	    sheet.setColumnWidth(0, 6000);
 	    sheet.setColumnWidth(1, 4000);
 	    sheet.setColumnWidth(2, 6000);
+	    sheet.setColumnWidth(3, 4000);
+	    sheet.setColumnWidth(4, 4000);
+	    sheet.setColumnWidth(5, 4000);
 
 	    workbook.write(out);
 	    workbook.close();
