@@ -13,6 +13,7 @@ import org.apache.poi.xssf.usermodel.XSSFWorkbook;
 
 import java.io.ByteArrayOutputStream;
 
+import com.springboot.backend.optica.dto.MarcaResumenDTO;
 import com.springboot.backend.optica.modelo.Producto;
 import com.springboot.backend.optica.modelo.ProductoLocal;
 
@@ -104,5 +105,33 @@ public class ExcelServiceImp {
 
 	    return out.toByteArray();
 	}
+	
+	public byte[] generarExcelResumenMarcas(List<MarcaResumenDTO> resumen) throws IOException {
+	    ByteArrayOutputStream out = new ByteArrayOutputStream();
+	    Workbook workbook = new XSSFWorkbook();
+	    Sheet sheet = workbook.createSheet("Resumen por Marca");
+
+	    Row header = sheet.createRow(0);
+	    header.createCell(0).setCellValue("Marca");
+	    header.createCell(1).setCellValue("Cantidad Vendida Total");
+	    header.createCell(2).setCellValue("Ganancia Total");
+
+	    int rowIdx = 1;
+	    for (MarcaResumenDTO dto : resumen) {
+	        Row row = sheet.createRow(rowIdx++);
+	        row.createCell(0).setCellValue(dto.getMarcaNombre());
+	        row.createCell(1).setCellValue(dto.getCantidadVendida());
+	        row.createCell(2).setCellValue(dto.getGananciaTotal());
+	    }
+
+	    sheet.setColumnWidth(0, 6000);
+	    sheet.setColumnWidth(1, 4000);
+	    sheet.setColumnWidth(2, 4000);
+
+	    workbook.write(out);
+	    workbook.close();
+	    return out.toByteArray();
+	}
+
 
 }

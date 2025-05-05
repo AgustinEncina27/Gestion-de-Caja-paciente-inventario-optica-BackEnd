@@ -59,6 +59,22 @@ public class ExcelController {
             return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).build();
         }
     }
+    
+    @PostMapping("/ventas/marcas")
+    public ResponseEntity<byte[]> exportarResumenPorMarcas(@RequestBody FiltroDTO filtros) {
+        try {
+            byte[] excel = movimientoService.exportarExcelMarcasVendidas(filtros);
+
+            HttpHeaders headers = new HttpHeaders();
+            headers.setContentType(MediaType.APPLICATION_OCTET_STREAM);
+            headers.set(HttpHeaders.CONTENT_DISPOSITION, "attachment; filename=marcas_vendidas.xlsx");
+
+            return new ResponseEntity<>(excel, headers, HttpStatus.OK);
+        } catch (IOException e) {
+            return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).build();
+        }
+    }
+
 
 
 }

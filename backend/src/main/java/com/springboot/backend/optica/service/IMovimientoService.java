@@ -28,4 +28,5 @@ public interface IMovimientoService {
 	byte[] generarReporteMovimientoOptica(Long idMovimiento)throws IOException;
 	public Map<String, Map<String, Double>> calcularTotales(FiltroDTO filtros);
 	public byte[] exportarExcelProductosVendidos(FiltroDTO filtros) throws IOException;
+	byte[] exportarExcelMarcasVendidas(FiltroDTO filtros) throws IOException;
 }

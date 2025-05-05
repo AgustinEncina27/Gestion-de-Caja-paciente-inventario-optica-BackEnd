@@ -3,6 +3,8 @@ package com.springboot.backend.optica.service;
 import java.io.IOException;
 import java.time.LocalDate;
 import java.time.LocalDateTime;
+import java.util.ArrayList;
+import java.util.Comparator;
 import java.util.HashMap;
 import java.util.LinkedHashMap;
 import java.util.List;
@@ -20,6 +22,7 @@ import com.springboot.backend.optica.dao.IMetodoPagoDao;
 import com.springboot.backend.optica.dao.IMovimientoDao;
 import com.springboot.backend.optica.dao.IProductoLocalDao;
 import com.springboot.backend.optica.dto.FiltroDTO;
+import com.springboot.backend.optica.dto.MarcaResumenDTO;
 import com.springboot.backend.optica.modelo.MetodoPago;
 import com.springboot.backend.optica.modelo.Movimiento;
 import com.springboot.backend.optica.modelo.Producto;
@@ -27,6 +30,7 @@ import com.springboot.backend.optica.modelo.ProductoLocal;
 import com.springboot.backend.optica.modelo.CajaMovimiento;
 import com.springboot.backend.optica.modelo.DetalleAdicional;
 import com.springboot.backend.optica.modelo.DetalleMovimiento;
+import com.springboot.backend.optica.modelo.Marca;
 
 @Service
 public class MovimientoServiceImpl implements IMovimientoService {
@@ -393,6 +397,44 @@ public class MovimientoServiceImpl implements IMovimientoService {
 		return pdfService.generarReporteMovimientoOptica(movimiento);
 		
     }
+    
+    @Override
+    @Transactional(readOnly = true)
+    public byte[] exportarExcelMarcasVendidas(FiltroDTO filtros) throws IOException {
+        Long localId = filtros.getLocal() == 0 ? null : filtros.getLocal();
+        LocalDateTime fechaInicio = filtros.getFechaInicio().atStartOfDay();
+        LocalDateTime fechaFin = filtros.getFechaFin().atTime(23, 59, 59);
+
+        List<Movimiento> movimientos = movimientoRepository.filtrarMovimientos(localId, fechaInicio, fechaFin);
+
+        List<DetalleMovimiento> detalles = movimientos.stream()
+            .filter(m -> "ENTRADA".equalsIgnoreCase(m.getTipoMovimiento()))
+            .flatMap(m -> m.getDetalles().stream())
+            .collect(Collectors.toList());
+
+        // Agrupar por marca
+        Map<Marca, MarcaResumenDTO> resumenPorMarca = new HashMap<>();
+        for (DetalleMovimiento detalle : detalles) {
+            Producto p = detalle.getProducto();
+            Marca marca = p.getMarca();
+            int cantidad = detalle.getCantidad();
+            double costo = p.getCosto() != null ? p.getCosto() : 0;
+            double precio = p.getPrecio();
+            double ganancia = (precio - costo) * cantidad;
+
+            resumenPorMarca.computeIfAbsent(marca, m -> new MarcaResumenDTO(m.getNombre(), 0, 0.0));
+            MarcaResumenDTO resumen = resumenPorMarca.get(marca);
+            resumen.setCantidadVendida(resumen.getCantidadVendida() + cantidad);
+            resumen.setGananciaTotal(resumen.getGananciaTotal() + ganancia);
+        }
+
+        // Convertir y ordenar
+        List<MarcaResumenDTO> resumenList = new ArrayList<>(resumenPorMarca.values());
+        resumenList.sort(Comparator.comparingDouble(MarcaResumenDTO::getGananciaTotal).reversed());
+
+        return excelService.generarExcelResumenMarcas(resumenList);
+    }
+
 
 
 
