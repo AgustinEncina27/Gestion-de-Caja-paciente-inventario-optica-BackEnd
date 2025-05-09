@@ -14,7 +14,7 @@ import com.springboot.backend.optica.modelo.Producto;
 
 public interface IProductoDao extends JpaRepository<Producto, Long> {
 	
-	@Query("SELECT pl.producto FROM ProductoLocal pl WHERE pl.local.id = :localId")
+	@Query("SELECT pl.producto FROM ProductoLocal pl WHERE pl.local.id = :localId  ORDER BY pl.producto.marca.nombre ASC")
 	Page<Producto> findProductosByLocalId(@Param("localId") Long localId, Pageable pageable);
 	
 	@Query("SELECT pl.producto FROM ProductoLocal pl WHERE pl.local.id = :localId AND LOWER(pl.producto.marca.nombre) LIKE LOWER(CONCAT('%', :marca, '%'))")
@@ -49,5 +49,9 @@ public interface IProductoDao extends JpaRepository<Producto, Long> {
 	       "AND p.marca.id = :marcaId " +
 	       "AND p.id != :productoId")
 	boolean existsByModeloAndMarca(@Param("modelo") String modelo, @Param("marcaId") Long marcaId, @Param("productoId") Long productoId);
+
+	@Query("SELECT LOWER(p.modelo) FROM Producto p WHERE LOWER(p.modelo) IN :modelos AND p.marca.id = :marcaId")
+	List<String> findModelosExistentes(@Param("modelos") List<String> modelos, @Param("marcaId") Long marcaId);
+
 	
 }

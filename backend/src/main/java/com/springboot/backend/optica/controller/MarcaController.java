@@ -38,7 +38,7 @@ public class MarcaController {
 		return marcaService.findAllMarca();
 	}
 		
-	@Secured("ROLE_ADMIN")
+	@Secured({ "ROLE_ADMIN", "ROLE_VENDEDOR" })
 	@PostMapping("/marca")
 	public ResponseEntity<?> createCategory(@Valid @RequestBody Marca marca, BindingResult result) {
 		
@@ -69,7 +69,7 @@ public class MarcaController {
 		return new ResponseEntity<Map<String, Object>>(response, HttpStatus.CREATED);
 	}
 	
-	@Secured("ROLE_ADMIN")
+	@Secured({ "ROLE_ADMIN", "ROLE_VENDEDOR" })
 	@PutMapping("/marca/{id}")
 	public ResponseEntity<?> update(@Valid @RequestBody Marca marca, BindingResult result, @PathVariable Long id) {
 
@@ -115,7 +115,7 @@ public class MarcaController {
 	}
 	
 	
-	@Secured("ROLE_ADMIN")
+	@Secured({ "ROLE_ADMIN", "ROLE_VENDEDOR" })
 	@DeleteMapping("/marca/{id}")
 	public ResponseEntity<?> delete(@PathVariable Long id) {
 		

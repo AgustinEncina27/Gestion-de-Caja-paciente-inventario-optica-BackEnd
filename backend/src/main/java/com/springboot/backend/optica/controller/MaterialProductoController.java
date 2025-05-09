@@ -38,7 +38,7 @@ public class MaterialProductoController {
 		return materialProductoService.findAllMarca();
 	}
 		
-	@Secured("ROLE_ADMIN")
+	@Secured({ "ROLE_ADMIN", "ROLE_VENDEDOR" })
 	@PostMapping("/materialProducto")
 	public ResponseEntity<?> createMaterialProducto(@Valid @RequestBody MaterialProducto materialProducto, BindingResult result) {
 		
@@ -69,7 +69,7 @@ public class MaterialProductoController {
 		return new ResponseEntity<Map<String, Object>>(response, HttpStatus.CREATED);
 	}
 	
-	@Secured("ROLE_ADMIN")
+	@Secured({ "ROLE_ADMIN", "ROLE_VENDEDOR" })
 	@PutMapping("/materialProducto/{id}")
 	public ResponseEntity<?> update(@Valid @RequestBody MaterialProducto materialProducto, BindingResult result, @PathVariable Long id) {
 
@@ -115,7 +115,7 @@ public class MaterialProductoController {
 	}
 	
 	
-	@Secured("ROLE_ADMIN")
+	@Secured({ "ROLE_ADMIN", "ROLE_VENDEDOR" })
 	@DeleteMapping("/materialProducto/{id}")
 	public ResponseEntity<?> delete(@PathVariable Long id) {
 		

@@ -137,14 +137,14 @@ public class MovimientoController {
         return ResponseEntity.ok(totales);
     }
     
-    @Secured("ROLE_ADMIN")
+    @Secured({ "ROLE_ADMIN", "ROLE_VENDEDOR" })
     @PostMapping
     public ResponseEntity<Movimiento> createMovimiento(@RequestBody Movimiento movimiento) {
         Movimiento newMovimiento = movimientoService.create(movimiento);
         return ResponseEntity.status(HttpStatus.CREATED).body(newMovimiento);
     }
     
-    @Secured("ROLE_ADMIN")
+    @Secured({ "ROLE_ADMIN", "ROLE_VENDEDOR" })
     @PutMapping("/{id}")
     public ResponseEntity<Movimiento> updateMovimiento(@PathVariable Long id, @RequestBody Movimiento movimiento) {
     	try {
@@ -155,7 +155,7 @@ public class MovimientoController {
         }
     }
     
-    @Secured("ROLE_ADMIN")
+    @Secured({ "ROLE_ADMIN", "ROLE_VENDEDOR" })
     @DeleteMapping("/{id}")
     public ResponseEntity<Void> deleteMovimiento(@PathVariable Long id) {
         movimientoService.delete(id);

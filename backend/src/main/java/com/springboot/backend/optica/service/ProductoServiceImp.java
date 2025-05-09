@@ -135,6 +135,12 @@ public class ProductoServiceImp implements IProductoService {
 	
 	@Override
 	@Transactional(readOnly = true)
+	public List<String> obtenerModelosExistentes(List<String> modelos, Long marcaId) {
+	    return productoDao.findModelosExistentes(modelos, marcaId);
+	}
+	
+	@Override
+	@Transactional(readOnly = true)
 	public List<StockTotalSucursalDTO> obtenerStockTotalPorSucursal() {
         List<Object[]> resultados = productoLocalRepository.obtenerStockTotalPorSucursal();
         List<StockTotalSucursalDTO> stockPorSucursal = new ArrayList<>();

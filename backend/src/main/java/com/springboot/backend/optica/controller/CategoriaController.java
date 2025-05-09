@@ -56,7 +56,7 @@ public class CategoriaController {
 		return categoriaService.findByGeneroAndCetegoria(generoSeleccionado,id,pageable);
 	}
 	
-	@Secured("ROLE_ADMIN")
+	@Secured({ "ROLE_ADMIN", "ROLE_VENDEDOR" })
 	@PostMapping("/categoria")
 	public ResponseEntity<?> createCategory(@Valid @RequestBody Categoria categoria, BindingResult result) {
 		
@@ -87,7 +87,7 @@ public class CategoriaController {
 		return new ResponseEntity<Map<String, Object>>(response, HttpStatus.CREATED);
 	}
 	
-	@Secured("ROLE_ADMIN")
+	@Secured({ "ROLE_ADMIN", "ROLE_VENDEDOR" })
 	@PutMapping("/categoria/{id}")
 	public ResponseEntity<?> update(@Valid @RequestBody Categoria categoria, BindingResult result, @PathVariable Long id) {
 
@@ -133,7 +133,7 @@ public class CategoriaController {
 	}
 	
 	
-	@Secured("ROLE_ADMIN")
+	@Secured({ "ROLE_ADMIN", "ROLE_VENDEDOR" })
 	@DeleteMapping("/categoria/{id}")
 	public ResponseEntity<?> delete(@PathVariable Long id) {
 		

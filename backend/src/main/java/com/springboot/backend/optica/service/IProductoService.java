@@ -34,6 +34,8 @@ public interface IProductoService {
         
     public boolean existsByModeloAndMarca(String modelo, Long marcaId, Long id);
     
+    public List<String> obtenerModelosExistentes(List<String> modelos, Long marcaId);
+    
     public List<Producto> findByMarcaNoEstricto(String marca);
 	
     public List<StockTotalSucursalDTO> obtenerStockTotalPorSucursal();

@@ -40,7 +40,7 @@ public class LocalController {
 		return localService.findAllLocal();
 	}
 		
-	@Secured("ROLE_ADMIN")
+	@Secured({ "ROLE_ADMIN", "ROLE_VENDEDOR" })
 	@PostMapping("/local")
 	public ResponseEntity<?> createLocal(@Valid @RequestBody Local local, BindingResult result) {
 		
@@ -71,7 +71,7 @@ public class LocalController {
 		return new ResponseEntity<Map<String, Object>>(response, HttpStatus.CREATED);
 	}
 	
-	@Secured("ROLE_ADMIN")
+	@Secured({ "ROLE_ADMIN", "ROLE_VENDEDOR" })
 	@PutMapping("/local/{id}")
 	public ResponseEntity<?> update(@Valid @RequestBody Local local, BindingResult result, @PathVariable Long id) {
 
@@ -118,7 +118,7 @@ public class LocalController {
 	}
 	
 	
-	@Secured("ROLE_ADMIN")
+	@Secured({ "ROLE_ADMIN", "ROLE_VENDEDOR" })
 	@DeleteMapping("/local/{id}")
 	public ResponseEntity<?> delete(@PathVariable Long id) {
 		

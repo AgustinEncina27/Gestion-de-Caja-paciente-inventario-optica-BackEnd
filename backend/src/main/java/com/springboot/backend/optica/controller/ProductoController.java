@@ -1,6 +1,7 @@
 package com.springboot.backend.optica.controller;
 
 
+import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
@@ -31,6 +32,7 @@ import org.springframework.web.bind.annotation.RestController;
 import com.springboot.backend.optica.dto.StockPorMaterialDTO;
 import com.springboot.backend.optica.dto.StockTotalSucursalDTO;
 import com.springboot.backend.optica.modelo.Producto;
+import com.springboot.backend.optica.modelo.ProductoLocal;
 import com.springboot.backend.optica.service.IProductoService;
 import com.springboot.backend.optica.util.AuthUtils;
 
@@ -159,8 +161,17 @@ public class ProductoController {
         List<StockPorMaterialDTO> stock = productoService.obtenerStockPorMaterialYSucursal(localId);
         return ResponseEntity.ok(stock);
     }
+	
+	@PostMapping("/productos/validar-modelos")
+	public ResponseEntity<List<String>> validarModelos(
+	        @RequestParam Long marcaId,
+	        @RequestBody List<String> modelos) {
+	    
+	    List<String> existentes = productoService.obtenerModelosExistentes(modelos, marcaId);
+	    return ResponseEntity.ok(existentes);
+	}
 		
-	@Secured("ROLE_ADMIN")
+	@Secured({ "ROLE_ADMIN", "ROLE_VENDEDOR" })
 	@PostMapping("/productos")
 	public ResponseEntity<?> create(@Valid @RequestBody Producto producto, BindingResult result) {
 		Producto productoNew = null;
@@ -203,8 +214,50 @@ public class ProductoController {
 		response.put("producto", productoNew);
 		return new ResponseEntity<Map<String, Object>>(response, HttpStatus.CREATED);
 	}
+	
+	@Secured({ "ROLE_ADMIN", "ROLE_VENDEDOR" })
+	@PostMapping("/productos/crearVarios")
+	public ResponseEntity<?> crearVarios(@RequestBody List<Producto> productos) {
+	    Map<String, Object> response = new HashMap<>();
+	    List<Producto> productosGuardados = new ArrayList<>();
+	    List<String> errores = new ArrayList<>();
+
+	    for (Producto producto : productos) {
+	        // Validar modelo + marca
+	        if (productoService.existsByModeloAndMarca(producto.getModelo(), producto.getMarca().getId(), 0L)) {
+	            errores.add("Ya existe un producto con el modelo '" + producto.getModelo() + "' para la marca '" + producto.getMarca().getNombre() + "'.");
+	            continue;
+	        }
+
+	        // Vincular productoLocales
+	        if (producto.getProductoLocales() != null) {
+	            for (ProductoLocal pl : producto.getProductoLocales()) {
+	                pl.setProducto(producto);
+	            }
+	        }
+
+	        try {
+	            Producto guardado = productoService.save(producto);
+	            productosGuardados.add(guardado);
+	        } catch (DataAccessException e) {
+	            errores.add("Error al guardar modelo '" + producto.getModelo() + "': " + e.getMostSpecificCause().getMessage());
+	        }
+	    }
+
+	    if (!errores.isEmpty()) {
+	        response.put("mensaje", "Algunos productos no se pudieron guardar.");
+	        response.put("errores", errores);
+	        response.put("guardados", productosGuardados.size());
+	        return ResponseEntity.status(HttpStatus.BAD_REQUEST).body(response);
+	    }
+
+	    response.put("mensaje", "Todos los productos fueron guardados con éxito.");
+	    response.put("guardados", productosGuardados.size());
+	    return ResponseEntity.status(HttpStatus.CREATED).body(response);
+	}
+
 		
-	@Secured("ROLE_ADMIN")
+	@Secured({ "ROLE_ADMIN", "ROLE_VENDEDOR" })
 	@PutMapping("/productos/{id}")
 	public ResponseEntity<?> update(@Valid @RequestBody Producto producto, BindingResult result, @PathVariable Long id) {
 
@@ -275,7 +328,7 @@ public class ProductoController {
 		return new ResponseEntity<Map<String, Object>>(response, HttpStatus.CREATED);
 	}
 	
-	@Secured("ROLE_ADMIN")
+	@Secured({ "ROLE_ADMIN", "ROLE_VENDEDOR" })
 	@DeleteMapping("/productos/{id}")
 	public ResponseEntity<?> delete(@PathVariable Long id) {
 		Map<String, Object> response = new HashMap<>();

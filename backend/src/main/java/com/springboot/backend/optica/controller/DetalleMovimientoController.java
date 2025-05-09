@@ -38,14 +38,14 @@ public class DetalleMovimientoController {
         return detalleMovimiento != null ? ResponseEntity.ok(detalleMovimiento) : ResponseEntity.notFound().build();
     }
     
-    @Secured("ROLE_ADMIN")
+    @Secured({ "ROLE_ADMIN", "ROLE_VENDEDOR" })
     @PostMapping
     public ResponseEntity<DetalleMovimiento> createDetalleMovimiento(@RequestBody DetalleMovimiento detalleMovimiento) {
         DetalleMovimiento newDetalleMovimiento = detalleMovimientoService.save(detalleMovimiento);
         return ResponseEntity.status(HttpStatus.CREATED).body(newDetalleMovimiento);
     }
     
-    @Secured("ROLE_ADMIN")
+    @Secured({ "ROLE_ADMIN", "ROLE_VENDEDOR" })
     @PutMapping("/{id}")
     public ResponseEntity<DetalleMovimiento> updateDetalleMovimiento(@PathVariable Long id, @RequestBody DetalleMovimiento detalleMovimiento) {
         DetalleMovimiento currentDetalleMovimiento = detalleMovimientoService.findById(id);
@@ -56,7 +56,7 @@ public class DetalleMovimientoController {
         return ResponseEntity.ok(detalleMovimientoService.save(detalleMovimiento));
     }
     
-    @Secured("ROLE_ADMIN")
+    @Secured({ "ROLE_ADMIN", "ROLE_VENDEDOR" })
     @DeleteMapping("/{id}")
     public ResponseEntity<Void> deleteDetalleMovimiento(@PathVariable Long id) {
         detalleMovimientoService.delete(id);

@@ -38,7 +38,7 @@ public class MetodoPagoController {
 		return merodoPagoService.findAll();
 	}
 		
-	@Secured("ROLE_ADMIN")
+	@Secured({ "ROLE_ADMIN", "ROLE_VENDEDOR" })
 	@PostMapping("/metodoPago")
 	public ResponseEntity<?> createCategory(@Valid @RequestBody MetodoPago metodoPago, BindingResult result) {
 		
@@ -69,7 +69,7 @@ public class MetodoPagoController {
 		return new ResponseEntity<Map<String, Object>>(response, HttpStatus.CREATED);
 	}
 	
-	@Secured("ROLE_ADMIN")
+	@Secured({ "ROLE_ADMIN", "ROLE_VENDEDOR" })
 	@PutMapping("/metodoPago/{id}")
 	public ResponseEntity<?> update(@Valid @RequestBody MetodoPago metodoPago, BindingResult result, @PathVariable Long id) {
 
@@ -115,7 +115,7 @@ public class MetodoPagoController {
 	}
 	
 	
-	@Secured("ROLE_ADMIN")
+	@Secured({ "ROLE_ADMIN", "ROLE_VENDEDOR" })
 	@DeleteMapping("/metodoPago/{id}")
 	public ResponseEntity<?> delete(@PathVariable Long id) {
 		
