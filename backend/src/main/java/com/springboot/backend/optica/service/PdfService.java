@@ -40,7 +40,7 @@ public class PdfService implements IPdfService {
             	InputStream imageStream = getClass().getClassLoader().getResourceAsStream("static/images/logo2.png");
             	PDImageXObject pdImage = PDImageXObject.createFromByteArray(document, imageStream.readAllBytes(), "imagen");
 
-                contentStream.drawImage(pdImage, 40, 730, 100, 50);
+            	contentStream.drawImage(pdImage, 40, 680, 100, 100);
                 
                 contentStream.setFont(PDType1Font.HELVETICA_BOLD, 14);
                 contentStream.beginText();
@@ -219,7 +219,7 @@ public class PdfService implements IPdfService {
                 //INFORMACION DEL MEDICO
                 contentStream.newLine();
                 contentStream.setFont(PDType1Font.HELVETICA_BOLD, 12);
-                contentStream.showText("Informaciòn del Médico:");
+                contentStream.showText("Información del Médico:");
                 contentStream.newLine();
                 contentStream.setFont(PDType1Font.HELVETICA, 12);
                 if(movimiento.getPaciente() != null) {
@@ -249,7 +249,7 @@ public class PdfService implements IPdfService {
             	InputStream imageStream = getClass().getClassLoader().getResourceAsStream("static/images/logo2.png");
             	PDImageXObject pdImage = PDImageXObject.createFromByteArray(document, imageStream.readAllBytes(), "imagen");
 
-                contentStream.drawImage(pdImage, 40, 730, 100, 50);
+            	contentStream.drawImage(pdImage, 40, 680, 100, 100);
                 
                 contentStream.setFont(PDType1Font.HELVETICA_BOLD, 14);
                 contentStream.beginText();
@@ -259,12 +259,14 @@ public class PdfService implements IPdfService {
                 contentStream.setFont(PDType1Font.HELVETICA_BOLD, 12);
                 contentStream.newLine();
                 contentStream.newLine();
+                contentStream.newLine();
+                contentStream.newLine();
                 contentStream.showText("Reporte de Movimiento");
                 contentStream.newLine();
                 contentStream.setFont(PDType1Font.HELVETICA, 12);
                 contentStream.showText("Local: " + movimiento.getLocal().getNombre()+"                                                Fecha: " + movimiento.getFecha().format(formatter));
                 contentStream.newLine();
-                
+              
                 //INFORMACION DEL PACIENTE
                 if(movimiento.getPaciente() != null) {
                 	contentStream.showText("Número de Ficha:"+movimiento.getPaciente().getFicha());
@@ -404,7 +406,7 @@ public class PdfService implements IPdfService {
             	InputStream imageStream = getClass().getClassLoader().getResourceAsStream("static/images/logo2.png");
             	PDImageXObject pdImage = PDImageXObject.createFromByteArray(document, imageStream.readAllBytes(), "imagen");
 
-                contentStream.drawImage(pdImage, 40, 730, 100, 50);
+                contentStream.drawImage(pdImage, 40, 680, 100, 100);
                 
                 contentStream.setFont(PDType1Font.HELVETICA_BOLD, 14);
                 contentStream.beginText();
@@ -412,6 +414,8 @@ public class PdfService implements IPdfService {
                 contentStream.newLineAtOffset(50, 750);
                 
                 contentStream.showText("                                                                                Fecha: " +movimiento.getFecha().format(formatter));
+                contentStream.newLine();
+                contentStream.newLine();
                 contentStream.newLine();
                 contentStream.newLine();
                 contentStream.showText("Local: " + movimiento.getLocal().getNombre()+"     Dirección: "+movimiento.getLocal().getDireccion()+"     Celular: "+movimiento.getLocal().getCelular());
