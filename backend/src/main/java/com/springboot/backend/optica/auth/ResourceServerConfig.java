@@ -31,7 +31,7 @@ public class ResourceServerConfig extends ResourceServerConfigurerAdapter {
 	@Bean
 	public CorsConfigurationSource corsConfigurationSource() {
 		CorsConfiguration config= new CorsConfiguration();
-		config.setAllowedOrigins(Arrays.asList("http://localhost:4200", "http://localhost","https://opticaurbana.com.ar","https://www.opticaurbana.com.ar"));
+		config.setAllowedOrigins(Arrays.asList("http://localhost:4200", "http://localhost","https://opticajimenalivoti.com.ar","https://www.opticajimenalivoti.com.ar"));
 		config.setAllowedMethods(Arrays.asList("GET","POST","PUT","DELETE","OPTIONS"));
 		config.setAllowCredentials(true);
 		config.setAllowedHeaders(Arrays.asList("Content-Type","Authorization"));
