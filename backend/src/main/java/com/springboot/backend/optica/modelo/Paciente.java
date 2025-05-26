@@ -50,6 +50,9 @@ public class Paciente implements Serializable {
 
     @Column(length = 100)
     private String medico;
+    
+    @Column
+    private String cristal;
 
     @Column(nullable = false, name = "creado_en")
     private LocalDate creadoEn;

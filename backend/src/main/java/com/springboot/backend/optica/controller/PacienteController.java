@@ -109,6 +109,34 @@ public class PacienteController {
     }
 	
 	@Secured({ "ROLE_ADMIN", "ROLE_VENDEDOR" })
+	@PostMapping("/pacientes/{id}/actualizar-cristal")
+	public ResponseEntity<?> actualizarCristalPost(@PathVariable Long id, @RequestBody Map<String, String> body) {
+	    Map<String, Object> response = new HashMap<>();
+
+	    try {
+	        Paciente paciente = pacienteService.findById(id);
+	        if (paciente == null) {
+	            response.put("mensaje", "El paciente ID: " + id + " no existe en la base de datos!");
+	            return new ResponseEntity<>(response, HttpStatus.NOT_FOUND);
+	        }
+
+	        String nuevoCristal = body.get("cristal");
+	        paciente.setCristal(nuevoCristal);
+	        paciente.setUltimaActualizacion(java.time.LocalDate.now());
+
+	        pacienteService.save(paciente);
+	        response.put("mensaje", "Campo 'cristal' actualizado correctamente.");
+	        response.put("cristal", nuevoCristal);
+	        return new ResponseEntity<>(response, HttpStatus.OK);
+
+	    } catch (DataAccessException e) {
+	        response.put("mensaje", "Error al actualizar el campo cristal en la base de datos!");
+	        response.put("error", e.getMessage().concat(": ").concat(e.getMostSpecificCause().getMessage()));
+	        return new ResponseEntity<>(response, HttpStatus.INTERNAL_SERVER_ERROR);
+	    }
+	}
+	
+	@Secured({ "ROLE_ADMIN", "ROLE_VENDEDOR" })
 	@PostMapping("/pacientes")
 	public ResponseEntity<?> create(@Valid @RequestBody Paciente paciente, BindingResult result) {
 		Paciente pacienteNew = null;
