@@ -72,8 +72,10 @@ public class MovimientoController {
 
  	    if ("ROLE_ADMIN".equals(rol)) {
  	        movimientos = movimientoService.filtrarMovimientos(idLocal, tipoMovimiento, nroFicha, fecha, metodoPago, pageable);
+
  	    } else {
  	        movimientos = movimientoService.filtrarMovimientos(idLocalUser, tipoMovimiento, nroFicha, fecha, metodoPago, pageable);
+
  	    }
 
  	    return ResponseEntity.ok(movimientos);
