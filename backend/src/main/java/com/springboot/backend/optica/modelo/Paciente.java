@@ -13,6 +13,7 @@ import lombok.Data;
 @Entity
 @Table(name = "pacientes")
 @Data
+@JsonIgnoreProperties({"movimientos", "hibernateLazyInitializer", "handler"})
 public class Paciente implements Serializable {
 
     @Id
@@ -37,10 +38,9 @@ public class Paciente implements Serializable {
     @Column(length = 20)
     private String genero;
 
- // Relación con Graduacion
-    @OneToMany(mappedBy = "paciente", cascade = CascadeType.ALL, orphanRemoval = true, fetch = FetchType.LAZY)
-    @JsonIgnoreProperties({"paciente", "hibernateLazyInitializer", "handler"})
-    private List<Graduacion> graduaciones;
+	 // 📋 Lista de fichas de graduación
+	@OneToMany(mappedBy = "paciente", cascade = CascadeType.ALL, orphanRemoval = true)
+	private List<FichaGraduacion> historialFichas;
 
     @Column(length = 20)
     private String documento;

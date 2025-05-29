@@ -39,7 +39,7 @@ public class PacienteController {
 	
 	@Autowired
 	private IPacienteService pacienteService;
-		
+			
 	// Obtener todos los pacientes
 	@GetMapping("/pacientes")
 	public List<Paciente> getAllPacientes() {
@@ -109,128 +109,149 @@ public class PacienteController {
     }
 	
 	@Secured({ "ROLE_ADMIN", "ROLE_VENDEDOR" })
+	@PostMapping("/pacientes/cristales")
+    public ResponseEntity<?> agregarCristal(@RequestBody Map<String, Object> body) {
+        try {
+            Long pacienteId = ((Number) body.get("pacienteId")).longValue();
+            String nombre = (String) body.get("nombre");
+
+            pacienteService.agregarCristal(pacienteId, nombre);
+
+            return ResponseEntity.ok().build();
+        } catch (Exception e) {
+            return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR)
+                .body("Error al agregar cristal: " + e.getMessage());
+        }
+    }
+	
+	@Secured({ "ROLE_ADMIN", "ROLE_VENDEDOR" })
 	@PostMapping("/pacientes")
 	public ResponseEntity<?> create(@Valid @RequestBody Paciente paciente, BindingResult result) {
-		Paciente pacienteNew = null;
-		Map<String, Object> response = new HashMap<>();
-		
-		 // Actualizar la colección productoLocales sin reemplazarla
-        if (paciente.getGraduaciones() != null) {
-        	paciente.getGraduaciones().forEach(graduacion -> {
-        		graduacion.setPaciente(paciente);
-            });
-        }
-		
-		if(result.hasErrors()) {
+	    Map<String, Object> response = new HashMap<>();
 
-			List<String> errors = result.getFieldErrors()
-					.stream()
-					.map(err -> "El archivo '" + err.getField() +"' "+ err.getDefaultMessage())
-					.collect(Collectors.toList());
-			
-			response.put("errors", errors);
-			return new ResponseEntity<Map<String, Object>>(response, HttpStatus.BAD_REQUEST);
-		}
-		
-		// Validar existencia del documento y si no posee documento, la existencia del mismo celular
-		if (paciente.getDocumento() != null && !paciente.getDocumento().isEmpty()) {
-		    if (pacienteService.existsByDocumento(paciente.getDocumento())) {
-		        response.put("mensaje", "Ya existe un paciente con el mismo documento");
-		        return new ResponseEntity<>(response, HttpStatus.BAD_REQUEST);
-		    }
-		} else if (paciente.getCelular() != null && !paciente.getCelular().isEmpty()) {
-		    if (pacienteService.existsByCelular(paciente.getCelular())) {
-		        response.put("mensaje", "Ya existe un paciente con el mismo celular y sin documento");
-		        return new ResponseEntity<>(response, HttpStatus.BAD_REQUEST);
-		    }
-		}
-		
-		try {
-			pacienteNew = pacienteService.save(paciente);
-			
-		} catch(DataAccessException e) {
-			response.put("mensaje", "Error al realizar la inserción en la base de datos");
-			response.put("error", e.getMessage().concat(": ").concat(e.getMostSpecificCause().getMessage()));
-			return new ResponseEntity<Map<String, Object>>(response, HttpStatus.INTERNAL_SERVER_ERROR);
-		}
-		
-		response.put("mensaje", "El paciente ha sido creado exitosamente.!");
-		response.put("paciente", pacienteNew);
-		return new ResponseEntity<Map<String, Object>>(response, HttpStatus.CREATED);
+	    if (result.hasErrors()) {
+	        List<String> errors = result.getFieldErrors()
+	                .stream()
+	                .map(err -> "El campo '" + err.getField() + "' " + err.getDefaultMessage())
+	                .collect(Collectors.toList());
+	        response.put("errors", errors);
+	        return new ResponseEntity<>(response, HttpStatus.BAD_REQUEST);
+	    }
+
+	    // Validaciones por documento o celular
+	    if (paciente.getDocumento() != null && !paciente.getDocumento().isEmpty()) {
+	        if (pacienteService.existsByDocumento(paciente.getDocumento())) {
+	            response.put("mensaje", "Ya existe un paciente con el mismo documento");
+	            return new ResponseEntity<>(response, HttpStatus.BAD_REQUEST);
+	        }
+	    } else if (paciente.getCelular() != null && !paciente.getCelular().isEmpty()) {
+	        if (pacienteService.existsByCelular(paciente.getCelular())) {
+	            response.put("mensaje", "Ya existe un paciente con el mismo celular y sin documento");
+	            return new ResponseEntity<>(response, HttpStatus.BAD_REQUEST);
+	        }
+	    }
+
+	    try {
+	        // Relacionar cada ficha con el paciente, y a su vez las graduaciones y cristales con la ficha
+	        if (paciente.getHistorialFichas() != null) {
+	            paciente.getHistorialFichas().forEach(ficha -> {
+	                ficha.setPaciente(paciente);
+
+	                if (ficha.getGraduaciones() != null) {
+	                    ficha.getGraduaciones().forEach(graduacion -> graduacion.setFichaGraduacion(ficha));
+	                }
+
+	                if (ficha.getCristales() != null) {
+	                    ficha.getCristales().forEach(cristal -> cristal.setFichaGraduacion(ficha));
+	                }
+	            });
+	        }
+
+	        Paciente pacienteNuevo = pacienteService.save(paciente);
+
+	        response.put("mensaje", "El paciente ha sido creado exitosamente.");
+	        response.put("paciente", pacienteNuevo);
+	        return new ResponseEntity<>(response, HttpStatus.CREATED);
+
+	    } catch (DataAccessException e) {
+	        response.put("mensaje", "Error al realizar la inserción en la base de datos");
+	        response.put("error", e.getMessage().concat(": ").concat(e.getMostSpecificCause().getMessage()));
+	        return new ResponseEntity<>(response, HttpStatus.INTERNAL_SERVER_ERROR);
+	    }
 	}
+
 		
 	@Secured({ "ROLE_ADMIN", "ROLE_VENDEDOR" })
 	@PutMapping("/pacientes/{id}")
 	public ResponseEntity<?> update(@Valid @RequestBody Paciente paciente, BindingResult result, @PathVariable Long id) {
-		Paciente currentPaciente = pacienteService.findById(id);
 
-		Paciente pacienteUpdated = null;
-		
-		Map<String, Object> response = new HashMap<>();
+	    Map<String, Object> response = new HashMap<>();
 
-		if(result.hasErrors()) {
+	    if (result.hasErrors()) {
+	        List<String> errors = result.getFieldErrors()
+	                .stream()
+	                .map(err -> "El campo '" + err.getField() + "' " + err.getDefaultMessage())
+	                .collect(Collectors.toList());
 
-			List<String> errors = result.getFieldErrors()
-					.stream()
-					.map(err -> "El archivo '" + err.getField() +"' "+ err.getDefaultMessage())
-					.collect(Collectors.toList());
-			
-			response.put("errors", errors);
-			return new ResponseEntity<Map<String, Object>>(response, HttpStatus.BAD_REQUEST);
-		}
-		
-		if (currentPaciente == null) {
-			response.put("mensaje", "Error: No se pudo editar el paciente ID: "
-					.concat(id.toString().concat(" no existe en la base de datos!")));
-			return new ResponseEntity<Map<String, Object>>(response, HttpStatus.NOT_FOUND);
-		}
+	        response.put("errors", errors);
+	        return new ResponseEntity<>(response, HttpStatus.BAD_REQUEST);
+	    }
 
-		try {
-			
-			 // Actualizar la colección productoLocales sin reemplazarla
-	        if (paciente.getGraduaciones() != null) {
-	        	paciente.getGraduaciones().forEach(graduacion -> {
-	        		graduacion.setPaciente(paciente);
+	    Paciente currentPaciente = pacienteService.findById(id);
+	    if (currentPaciente == null) {
+	        response.put("mensaje", "Error: No se pudo editar el paciente ID: "
+	                + id + " porque no existe en la base de datos.");
+	        return new ResponseEntity<>(response, HttpStatus.NOT_FOUND);
+	    }
+
+	    try {
+	        // 🔁 Vincular las fichas al paciente
+	        if (paciente.getHistorialFichas() != null) {
+	            paciente.getHistorialFichas().forEach(ficha -> {
+	                ficha.setPaciente(currentPaciente); // usar el paciente actual (no el que viene del JSON)
+
+	                if (ficha.getGraduaciones() != null) {
+	                    ficha.getGraduaciones().forEach(g -> g.setFichaGraduacion(ficha));
+	                }
+
+	                if (ficha.getCristales() != null) {
+	                    ficha.getCristales().forEach(c -> c.setFichaGraduacion(ficha));
+	                }
 	            });
 	        }
-			
-			currentPaciente.setNombreCompleto(paciente.getNombreCompleto());
-			currentPaciente.setDireccion(paciente.getDireccion());
-			currentPaciente.setObraSocial(paciente.getObraSocial());
-			currentPaciente.setCelular(paciente.getCelular());
-			currentPaciente.setGenero(paciente.getGenero());
-			currentPaciente.setLocal(paciente.getLocal());
-			currentPaciente.setDocumento(paciente.getDocumento());
-			currentPaciente.setCorreo(paciente.getCorreo());
-			currentPaciente.setMedico(paciente.getMedico());
-			currentPaciente.setCreadoEn(paciente.getCreadoEn());
-			currentPaciente.setUltimaActualizacion(paciente.getUltimaActualizacion());
-			
-			 // Limpiar y actualizar graduaciones
-		    currentPaciente.getGraduaciones().clear();
-		    currentPaciente.getGraduaciones().addAll(paciente.getGraduaciones());
-			
-		    // Actualizar la colección productoLocales sin reemplazarla
-	        if (paciente.getGraduaciones() != null) {
-	        	currentPaciente.getGraduaciones().clear();
-	        	paciente.getGraduaciones().forEach(graduacion -> {
-	        		graduacion.setPaciente(currentPaciente);
-	        		currentPaciente.getGraduaciones().add(graduacion);
-	            });
+
+	        // 🔄 Actualizar campos básicos
+	        currentPaciente.setNombreCompleto(paciente.getNombreCompleto());
+	        currentPaciente.setDireccion(paciente.getDireccion());
+	        currentPaciente.setObraSocial(paciente.getObraSocial());
+	        currentPaciente.setCelular(paciente.getCelular());
+	        currentPaciente.setGenero(paciente.getGenero());
+	        currentPaciente.setLocal(paciente.getLocal());
+	        currentPaciente.setDocumento(paciente.getDocumento());
+	        currentPaciente.setCorreo(paciente.getCorreo());
+	        currentPaciente.setMedico(paciente.getMedico());
+	        currentPaciente.setCreadoEn(paciente.getCreadoEn());
+	        currentPaciente.setUltimaActualizacion(paciente.getUltimaActualizacion());
+
+	        // 🔁 Actualizar historial de fichas (opcional: reemplaza todo el historial)
+	        currentPaciente.getHistorialFichas().clear();
+	        if (paciente.getHistorialFichas() != null) {
+	            currentPaciente.getHistorialFichas().addAll(paciente.getHistorialFichas());
 	        }
-		    
-			pacienteUpdated = pacienteService.save(currentPaciente);
-		} catch (DataAccessException e) {
-			response.put("mensaje", "Error al actualizar el paciente en la base de datos!");
-			response.put("error", e.getMessage().concat(": ").concat(e.getMostSpecificCause().getMessage()));
-			return new ResponseEntity<Map<String, Object>>(response, HttpStatus.INTERNAL_SERVER_ERROR);
-		}
 
-		response.put("mensaje", "el paciente ha sido actualizado!");
-		response.put("paciente", pacienteUpdated);
+	        Paciente pacienteActualizado = pacienteService.save(currentPaciente);
 
-		return new ResponseEntity<Map<String, Object>>(response, HttpStatus.CREATED);
+	        response.put("mensaje", "El paciente ha sido actualizado correctamente.");
+	        response.put("paciente", pacienteActualizado);
+	        return new ResponseEntity<>(response, HttpStatus.CREATED);
+
+	    } catch (DataAccessException e) {
+	        response.put("mensaje", "Error al actualizar el paciente en la base de datos.");
+	        response.put("error", e.getMessage().concat(": ").concat(e.getMostSpecificCause().getMessage()));
+	        return new ResponseEntity<>(response, HttpStatus.INTERNAL_SERVER_ERROR);
+	    }
 	}
+
 	
 	@Secured({ "ROLE_ADMIN", "ROLE_VENDEDOR" })
 	@DeleteMapping("/pacientes/{id}")
