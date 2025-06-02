@@ -31,5 +31,7 @@ public interface IPacienteService {
 
 	public boolean existsByCelular(String celular);
 
-	public List<PacientesPorSucursalDTO> obtenerCantidadPacientesPorSucursal();		
+	public List<PacientesPorSucursalDTO> obtenerCantidadPacientesPorSucursal();
+
+	public void agregarCristal(Long pacienteId, String nombre);		
 }

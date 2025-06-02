@@ -70,7 +70,8 @@ public class Movimiento implements Serializable {
     public enum EstadoMovimiento {
         PEDIDO_CRISTALES,
         ARMANDO_PEDIDO,
-        ANTEOJO_TERMINADO
+        ANTEOJO_TERMINADO,
+        ENTREGADO
     }
 
     private static final long serialVersionUID = 1L;
