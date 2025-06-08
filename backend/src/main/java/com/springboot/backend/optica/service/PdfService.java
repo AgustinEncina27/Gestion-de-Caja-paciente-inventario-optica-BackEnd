@@ -41,7 +41,7 @@ public class PdfService implements IPdfService {
             	InputStream imageStream = getClass().getClassLoader().getResourceAsStream("static/images/logo2.png");
             	PDImageXObject pdImage = PDImageXObject.createFromByteArray(document, imageStream.readAllBytes(), "imagen");
 
-                contentStream.drawImage(pdImage, 40, 730, 100, 50);
+                contentStream.drawImage(pdImage, 40, 730, 150, 50);
                 
                 contentStream.setFont(PDType1Font.HELVETICA_BOLD, 12);
                 contentStream.beginText();
@@ -373,7 +373,7 @@ public class PdfService implements IPdfService {
 	        try (PDPageContentStream contentStream = new PDPageContentStream(document, page)) {
 	            InputStream imageStream = getClass().getClassLoader().getResourceAsStream("static/images/logo2.png");
 	            PDImageXObject pdImage = PDImageXObject.createFromByteArray(document, imageStream.readAllBytes(), "imagen");
-	            contentStream.drawImage(pdImage, 450, 710, 100, 50);
+	            contentStream.drawImage(pdImage, 400, 710, 150, 50);
 
 	            // Encabezado
 	            contentStream.setFont(PDType1Font.HELVETICA_BOLD, 12);
@@ -609,7 +609,7 @@ public class PdfService implements IPdfService {
             	InputStream imageStream = getClass().getClassLoader().getResourceAsStream("static/images/logo2.png");
             	PDImageXObject pdImage = PDImageXObject.createFromByteArray(document, imageStream.readAllBytes(), "imagen");
 
-                contentStream.drawImage(pdImage, 40, 730, 100, 50);
+                contentStream.drawImage(pdImage, 40, 730, 150, 50);
                 
                 contentStream.setFont(PDType1Font.HELVETICA_BOLD, 12);
                 contentStream.beginText();

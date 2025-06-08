@@ -3,6 +3,7 @@ package com.springboot.backend.optica.service;
 import java.io.IOException;
 import java.util.List;
 import java.util.Map;
+import java.util.stream.Collectors;
 
 import org.springframework.stereotype.Service;
 
@@ -16,6 +17,7 @@ import java.io.ByteArrayOutputStream;
 import com.springboot.backend.optica.dto.MarcaResumenDTO;
 import com.springboot.backend.optica.modelo.Producto;
 import com.springboot.backend.optica.modelo.ProductoLocal;
+import com.springboot.backend.optica.modelo.ProductoResumen;
 
 @Service
 public class ExcelServiceImp {
@@ -61,50 +63,64 @@ public class ExcelServiceImp {
         return out.toByteArray();
     }
 	
-	public byte[] generarExcelProductosVendidos(Map<Producto, Integer> resumen) throws IOException {
+	public byte[] generarExcelProductosVendidos(Map<String, ProductoResumen> resumen) throws IOException {
 	    ByteArrayOutputStream out = new ByteArrayOutputStream();
 	    Workbook workbook = new XSSFWorkbook();
 	    Sheet sheet = workbook.createSheet("Productos Vendidos");
 
 	    Row header = sheet.createRow(0);
 	    header.createCell(0).setCellValue("Modelo");
-	    header.createCell(1).setCellValue("Marca");
-	    header.createCell(2).setCellValue("Cantidad Vendida");
-	    header.createCell(3).setCellValue("Costo");
-	    header.createCell(4).setCellValue("Precio");
-	    header.createCell(5).setCellValue("Ganancia");
+	    header.createCell(1).setCellValue("Categorías");
+	    header.createCell(2).setCellValue("Descripción");
+	    header.createCell(3).setCellValue("Marca");
+	    header.createCell(4).setCellValue("Cantidad Vendida");
+	    header.createCell(5).setCellValue("Costo");
+	    header.createCell(6).setCellValue("Precio");
+	    header.createCell(7).setCellValue("Ganancia");
 
 	    int rowIdx = 1;
-	    for (Map.Entry<Producto, Integer> entry : resumen.entrySet()) {
-	        Producto p = entry.getKey();
-	        int cantidad = entry.getValue();
-
+	    for (ProductoResumen resumenItem : resumen.values()) {
 	        Row row = sheet.createRow(rowIdx++);
 
-	        double costo = p.getCosto() != null ? p.getCosto() : 0.0;
-	        double precio = p.getPrecio();
-	        double ganancia = (precio - costo) * cantidad;
+	        if (resumenItem.esCristal) {
+	            row.createCell(0).setCellValue("Cristal Adicional"); // Modelo
+	            row.createCell(1).setCellValue(""); // Categorías
+	            row.createCell(2).setCellValue(""); // Descripción
+	            row.createCell(3).setCellValue(resumenItem.descripcionCristal); // Marca
+	            row.createCell(4).setCellValue(resumenItem.cantidad); // Cantidad
+	            row.createCell(5).setCellValue(""); // Costo
+	            row.createCell(6).setCellValue(resumenItem.totalCristal); // Precio acumulado
+	            row.createCell(7).setCellValue(""); // Ganancia
+	        } else {
+	            Producto p = resumenItem.producto;
+	            double costo = p.getCosto() != null ? p.getCosto() : 0.0;
+	            double precio = p.getPrecio();
+	            double ganancia = (precio - costo) * resumenItem.cantidad;
 
-	        row.createCell(0).setCellValue(p.getModelo());
-	        row.createCell(1).setCellValue(p.getMarca().getNombre());
-	        row.createCell(2).setCellValue(cantidad);
-	        row.createCell(3).setCellValue(costo);
-	        row.createCell(4).setCellValue(precio);
-	        row.createCell(5).setCellValue(ganancia);
+	            row.createCell(0).setCellValue(p.getModelo());
+
+	            String categoriasTexto = p.getCategorias() != null
+	                    ? p.getCategorias().stream().map(c -> c.getNombre()).collect(Collectors.joining(", "))
+	                    : "";
+
+	            row.createCell(1).setCellValue(categoriasTexto);
+	            row.createCell(2).setCellValue(p.getDescripcion() != null ? p.getDescripcion() : "");
+	            row.createCell(3).setCellValue(p.getMarca().getNombre());
+	            row.createCell(4).setCellValue(resumenItem.cantidad);
+	            row.createCell(5).setCellValue(costo);
+	            row.createCell(6).setCellValue(precio);
+	            row.createCell(7).setCellValue(ganancia);
+	        }
 	    }
 
-	    sheet.setColumnWidth(0, 6000);
-	    sheet.setColumnWidth(1, 4000);
-	    sheet.setColumnWidth(2, 6000);
-	    sheet.setColumnWidth(3, 4000);
-	    sheet.setColumnWidth(4, 4000);
-	    sheet.setColumnWidth(5, 4000);
+	    // Ajustar anchos de columnas
+	    for (int i = 0; i <= 7; i++) sheet.autoSizeColumn(i);
 
 	    workbook.write(out);
 	    workbook.close();
-
 	    return out.toByteArray();
 	}
+
 	
 	public byte[] generarExcelResumenMarcas(List<MarcaResumenDTO> resumen) throws IOException {
 	    ByteArrayOutputStream out = new ByteArrayOutputStream();
