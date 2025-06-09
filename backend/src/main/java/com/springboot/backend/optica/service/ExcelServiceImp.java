@@ -114,7 +114,14 @@ public class ExcelServiceImp {
 	    }
 
 	    // Ajustar anchos de columnas
-	    for (int i = 0; i <= 7; i++) sheet.autoSizeColumn(i);
+	    sheet.setColumnWidth(0, 20 * 256); // Modelo
+	    sheet.setColumnWidth(1, 30 * 256); // Categorías
+	    sheet.setColumnWidth(2, 30 * 256); // Descripción
+	    sheet.setColumnWidth(3, 20 * 256); // Marca
+	    sheet.setColumnWidth(4, 15 * 256); // Cantidad
+	    sheet.setColumnWidth(5, 15 * 256); // Costo
+	    sheet.setColumnWidth(6, 15 * 256); // Precio
+	    sheet.setColumnWidth(7, 15 * 256); // Ganancia
 
 	    workbook.write(out);
 	    workbook.close();
