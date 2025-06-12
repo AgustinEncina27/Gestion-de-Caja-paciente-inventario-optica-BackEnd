@@ -102,7 +102,8 @@ public class LocalController {
 
 			currentLocal.setNombre(local.getNombre());
 			currentLocal.setDireccion(local.getDireccion());
-					
+			currentLocal.setCelular(local.getCelular());		
+			
 			localUpdated = localService.save(currentLocal);
 
 		} catch (DataAccessException e) {
