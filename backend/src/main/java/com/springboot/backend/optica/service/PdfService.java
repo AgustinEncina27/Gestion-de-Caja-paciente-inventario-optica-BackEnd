@@ -364,228 +364,149 @@ public class PdfService implements IPdfService {
 
 	        double deuda = 0;
 	        double total = 0;
-	        float x = 50;
+	        float x = 40;
 	        float y = 750;
-	        float spacing = 15;
+	        float spacing = 12;
 
 	        DateTimeFormatter formatter = DateTimeFormatter.ofPattern("dd/MM/yyyy");
 
 	        try (PDPageContentStream contentStream = new PDPageContentStream(document, page)) {
 	            InputStream imageStream = getClass().getClassLoader().getResourceAsStream("static/images/logo2.png");
 	            PDImageXObject pdImage = PDImageXObject.createFromByteArray(document, imageStream.readAllBytes(), "imagen");
-	            contentStream.drawImage(pdImage, 450, 710, 100, 50);
+	            contentStream.drawImage(pdImage, 430, 680, 100, 100);
 
-	            // Encabezado
-	            contentStream.setFont(PDType1Font.HELVETICA_BOLD, 12);
-	            contentStream.beginText();
-	            contentStream.newLineAtOffset(x, y);
-	            contentStream.showText("Reporte de Movimiento");
-	            contentStream.endText();
+	            // Encabezado principal
+	            contentStream.setFont(PDType1Font.HELVETICA_BOLD, 11);
+	            escribir(contentStream, x, y, "REPORTE DE MOVIMIENTO");
 	            y -= spacing;
 
-	            contentStream.setFont(PDType1Font.HELVETICA, 10);
-	            contentStream.beginText();
-	            contentStream.newLineAtOffset(x, y);
-	            contentStream.showText("Local: " + movimiento.getLocal().getNombre() + "    Fecha: " + movimiento.getFecha().format(formatter));
-	            contentStream.endText();
+	            contentStream.setFont(PDType1Font.HELVETICA, 9);
+	            escribir(contentStream, x, y, "Local: " + movimiento.getLocal().getNombre());
+	            escribir(contentStream, 300, y, "Fecha: " + movimiento.getFecha().format(formatter));
+	            y -= spacing * 1.5;
+
+	            // Datos del Paciente
+	            contentStream.setFont(PDType1Font.HELVETICA_BOLD, 10);
+	            escribir(contentStream, x, y, "Datos del Paciente:");
 	            y -= spacing;
 
+	            contentStream.setFont(PDType1Font.HELVETICA, 9);
 	            if (movimiento.getPaciente() != null) {
-	                String[] datosPaciente = {
-	                    "Nro. de Ficha: " + movimiento.getPaciente().getFicha(),
-	                    "Paciente: " + safe(movimiento.getPaciente().getNombreCompleto()),
-	                    "Celular: " + safe(movimiento.getPaciente().getCelular()),
-	                    "Domicilio: " + safe(movimiento.getPaciente().getDireccion()),
-	                    "Obra Social: " + safe(movimiento.getPaciente().getObraSocial()),
-	                    "Médico: " + safe(movimiento.getPaciente().getMedico())
-	                };
-	                for (String dato : datosPaciente) {
-	                    contentStream.beginText();
-	                    contentStream.newLineAtOffset(x, y);
-	                    contentStream.showText(dato);
-	                    contentStream.endText();
+	                escribir(contentStream, x, y, "Ficha: " + movimiento.getPaciente().getFicha());
+	                escribir(contentStream, 150, y, "Paciente: " + safe(movimiento.getPaciente().getNombreCompleto()));
+	                escribir(contentStream, 300, y, "Celular: " + safe(movimiento.getPaciente().getCelular()));
+	                y -= spacing;
+	                
+	                escribir(contentStream, x, y, "Médico: " + safe(movimiento.getPaciente().getMedico()));
+	                escribir(contentStream, 150, y, "Obra Social: " + safe(movimiento.getPaciente().getObraSocial()));
+	                y -= spacing;
+
+	                escribir(contentStream, x, y, "Domicilio: " + safe(movimiento.getPaciente().getDireccion()));
+	                y -= spacing * 1.5;
+	            }
+
+	            // Ficha de Graduación
+	            if (movimiento.getPaciente() != null && movimiento.getPaciente().getHistorialFichas() != null 
+	                && !movimiento.getPaciente().getHistorialFichas().isEmpty()) {
+
+	            	Optional<FichaGraduacion> fichaOpt = movimiento.getPaciente().getHistorialFichas().stream()
+	            		    .max(Comparator
+	            		        .comparing(FichaGraduacion::getFecha)
+	            		        .thenComparing(FichaGraduacion::getId));
+
+	                if (fichaOpt.isPresent()) {
+	                    FichaGraduacion ficha = fichaOpt.get();
+
+	                    contentStream.setFont(PDType1Font.HELVETICA_BOLD, 10);
+	                    escribir(contentStream, x, y, "Ficha de Graduación (Fecha: " + (ficha.getFecha() != null ? ficha.getFecha().format(formatter) : "---") + ")");
 	                    y -= spacing;
+
+	                    contentStream.setFont(PDType1Font.HELVETICA, 9);
+	                    escribir(contentStream, x, y, "DNP D: " + safe(ficha.getDnpDerecho()) + " / I: " + safe(ficha.getDnpIzquierdo()));
+	                    escribir(contentStream, 300, y, "Alt. Pupilar D: " + safe(ficha.getAlturaPupilarDerecho()) + " / I: " + safe(ficha.getAlturaPupilarIzquierdo()));
+	                    y -= spacing;
+
+	                    escribir(contentStream, x, y, "Alt. Película: " + safe(ficha.getAlturaPelicula()));
+	                    escribir(contentStream, 300, y, "Puente: " + safe(ficha.getPuente()));
+	                    y -= spacing;
+
+	                    escribir(contentStream, x, y, "DM: " + safe(ficha.getDiagonalMayor()));
+	                    escribir(contentStream, 300, y, "Largo: " + safe(ficha.getLargo()) + ", Altura: " + safe(ficha.getAlturaArmazon()));
+	                    y -= spacing;
+
+	                    // Graduación Ojos
+	                    Optional<Graduacion> gradDer = ficha.getGraduaciones().stream().filter(g -> g.getOjo() == Graduacion.Ojo.DERECHO).findFirst();
+	                    Optional<Graduacion> gradIzq = ficha.getGraduaciones().stream().filter(g -> g.getOjo() == Graduacion.Ojo.IZQUIERDO).findFirst();
+
+	                    escribir(contentStream, x, y, "Graduación OD: " + gradDer.map(this::resumenGraduacion).orElse("---"));
+	                    y -= spacing;
+
+	                    escribir(contentStream, x, y, "Graduación OI: " + gradIzq.map(this::resumenGraduacion).orElse("---"));
+	                    y -= spacing * 1.5;
 	                }
 	            }
 
+	            contentStream.setFont(PDType1Font.HELVETICA_BOLD, 10);
+	            escribir(contentStream, x, y, "Detalle de la Compra:");
+	            escribir(contentStream, 300, y, "Adicionales:");
 	            y -= spacing;
 
-	            // Ficha de graduación
-	            if (movimiento.getPaciente() != null && movimiento.getPaciente().getHistorialFichas() != null && !movimiento.getPaciente().getHistorialFichas().isEmpty()) {
-	                Optional<FichaGraduacion> ultimaFichaOpt = movimiento.getPaciente().getHistorialFichas().stream()
-	                        .max(Comparator.comparing(FichaGraduacion::getFecha));
-
-	                if (ultimaFichaOpt.isPresent()) {
-	                    FichaGraduacion ficha = ultimaFichaOpt.get();
-
-	                    contentStream.setFont(PDType1Font.HELVETICA_BOLD, 10);
-	                    contentStream.beginText();
-	                    contentStream.newLineAtOffset(x, y);
-	                    contentStream.showText("Ficha de graduación del paciente");
-	                    contentStream.endText();
-	                    y -= spacing;
-
-	                    contentStream.setFont(PDType1Font.HELVETICA, 10);
-	                    contentStream.beginText();
-	                    contentStream.newLineAtOffset(x, y);
-	                    contentStream.showText("Fecha: " + (ficha.getFecha() != null ? ficha.getFecha().toString() : "---"));
-	                    contentStream.endText();
-	                    y -= spacing * 2;
-
-	                    float leftX = 50;
-	                    float rightX = 300;
-
-	                    contentStream.setFont(PDType1Font.HELVETICA_BOLD, 10);
-	                    contentStream.beginText();
-	                    contentStream.newLineAtOffset(leftX, y);
-	                    contentStream.showText("Medidas Persona");
-	                    contentStream.endText();
-
-	                    contentStream.beginText();
-	                    contentStream.newLineAtOffset(rightX, y);
-	                    contentStream.showText("Medidas del armazón");
-	                    contentStream.endText();
-	                    y -= spacing;
-
-	                    contentStream.setFont(PDType1Font.HELVETICA, 10);
-	                    String[] medidasPersona = {
-	                        "D.N.P: Derecho: " + safe(ficha.getDnpDerecho()) + ", Izquierdo: " + safe(ficha.getDnpIzquierdo()),
-	                        "Alt. Película: " + safe(ficha.getAlturaPelicula()),
-	                        "Alt.P: Derecho: " + safe(ficha.getAlturaPupilarDerecho()) + ", Izquierdo: " + safe(ficha.getAlturaPupilarIzquierdo())
-	                    };
-	                    String[] medidasArmazon = {
-	                        "P: " + safe(ficha.getPuente()) + ", D.M: " + safe(ficha.getDiagonalMayor()),
-	                        "Largo: " + safe(ficha.getLargo()) + ", Altura: " + safe(ficha.getAlturaArmazon())
-	                    };
-
-	                    for (int i = 0; i < medidasPersona.length; i++) {
-	                        if (i < medidasPersona.length) {
-	                            contentStream.beginText();
-	                            contentStream.newLineAtOffset(leftX, y);
-	                            contentStream.showText(medidasPersona[i]);
-	                            contentStream.endText();
-	                        }
-	                        if (i < medidasArmazon.length) {
-	                            contentStream.beginText();
-	                            contentStream.newLineAtOffset(rightX, y);
-	                            contentStream.showText(medidasArmazon[i]);
-	                            contentStream.endText();
-	                        }
-	                        y -= spacing;
-	                    }
-
-	                    y -= spacing;
-
-	                    // Graduación Ojo Derecho
-	                    contentStream.setFont(PDType1Font.HELVETICA_BOLD, 10);
-	                    contentStream.beginText();
-	                    contentStream.newLineAtOffset(leftX, y);
-	                    contentStream.showText("Graduación Ojo Derecho:");
-	                    contentStream.endText();
-	                    y -= spacing;
-
-	                    contentStream.setFont(PDType1Font.HELVETICA, 10);
-	                    Optional<Graduacion> gradDer = ficha.getGraduaciones().stream().filter(g -> g.getOjo() == Graduacion.Ojo.DERECHO).findFirst();
-	                    contentStream.beginText();
-	                    contentStream.newLineAtOffset(leftX, y);
-	                    contentStream.showText(gradDer.map(g -> "Esférico: " + safe(g.getEsferico()) + ", Cilíndrico: " + safe(g.getCilindrico()) + ", Eje: " + safe(g.getEje()) + ", Adición: " + safe(g.getAdicion()) + ", Cerca: " + safe(g.getCerca())).orElse("---"));
-	                    contentStream.endText();
-	                    y -= spacing;
-
-	                    // Graduación Ojo Izquierdo
-	                    contentStream.setFont(PDType1Font.HELVETICA_BOLD, 10);
-	                    contentStream.beginText();
-	                    contentStream.newLineAtOffset(leftX, y);
-	                    contentStream.showText("Graduación Ojo Izquierdo:");
-	                    contentStream.endText();
-	                    y -= spacing;
-
-	                    contentStream.setFont(PDType1Font.HELVETICA, 10);
-	                    Optional<Graduacion> gradIzq = ficha.getGraduaciones().stream().filter(g -> g.getOjo() == Graduacion.Ojo.IZQUIERDO).findFirst();
-	                    contentStream.beginText();
-	                    contentStream.newLineAtOffset(leftX, y);
-	                    contentStream.showText(gradIzq.map(g -> "Esférico: " + safe(g.getEsferico()) + ", Cilíndrico: " + safe(g.getCilindrico()) + ", Eje: " + safe(g.getEje()) + ", Adición: " + safe(g.getAdicion()) + ", Cerca: " + safe(g.getCerca())).orElse("---"));
-	                    contentStream.endText();
-	                    y -= spacing * 2;
-	                }
+	            // Detalles normales
+	            contentStream.setFont(PDType1Font.HELVETICA, 9);
+	            float yDetalles = y;
+	            for (DetalleMovimiento d : movimiento.getDetalles()) {
+	                escribir(contentStream, x, yDetalles, d.getProducto().getModelo() + " - Marca: " + d.getProducto().getMarca().getNombre() 
+	                    + " - Cant: " + d.getCantidad() + " - $" + d.getSubtotal());
+	                yDetalles -= spacing;
+	                total += d.getSubtotal();
 	            }
 
-	            // Información adicional
-	            if (!movimiento.getDetalles().isEmpty()) {
-	                contentStream.setFont(PDType1Font.HELVETICA_BOLD, 10);
-	                contentStream.beginText();
-	                contentStream.newLineAtOffset(x, y);
-	                contentStream.showText("Detalle de la compra:");
-	                contentStream.endText();
-	                y -= spacing;
-	                contentStream.setFont(PDType1Font.HELVETICA, 10);
-	                for (DetalleMovimiento d : movimiento.getDetalles()) {
-	                    contentStream.beginText();
-	                    contentStream.newLineAtOffset(x, y);
-	                    contentStream.showText(d.getProducto().getModelo() + " - Marca: " + d.getProducto().getMarca().getNombre() + " - Cantidad: " + d.getCantidad() + " - Precio: " + d.getSubtotal());
-	                    contentStream.endText();
-	                    y -= spacing;
-	                    total += d.getSubtotal();
-	                }
+	            // Detalles adicionales
+	            float yAdicionales = y;
+	            for (DetalleAdicional d : movimiento.getDetallesAdicionales()) {
+	                escribir(contentStream, 300, yAdicionales, d.getDescripcion() + " - $" + d.getSubtotal());
+	                yAdicionales -= spacing;
+	                total += d.getSubtotal();
 	            }
 
-	            if (!movimiento.getDetallesAdicionales().isEmpty()) {
-	                contentStream.setFont(PDType1Font.HELVETICA_BOLD, 10);
-	                contentStream.beginText();
-	                contentStream.newLineAtOffset(x, y);
-	                contentStream.showText("Detalle adicionales:");
-	                contentStream.endText();
-	                y -= spacing;
-	                contentStream.setFont(PDType1Font.HELVETICA, 10);
-	                for (DetalleAdicional d : movimiento.getDetallesAdicionales()) {
-	                    contentStream.beginText();
-	                    contentStream.newLineAtOffset(x, y);
-	                    contentStream.showText(d.getDescripcion() + " - Precio: " + d.getSubtotal());
-	                    contentStream.endText();
-	                    y -= spacing;
-	                    total += d.getSubtotal();
-	                }
-	            }
+	            // Ajuste el Y final al más bajo de ambos
+	            y = Math.min(yDetalles, yAdicionales) - spacing / 2;
 
+		        // Pagos realizados (controlamos altura fija)
 	            if (!movimiento.getCajaMovimientos().isEmpty()) {
 	                contentStream.setFont(PDType1Font.HELVETICA_BOLD, 10);
-	                contentStream.beginText();
-	                contentStream.newLineAtOffset(x, y);
-	                contentStream.showText("Pagos Realizados:");
-	                contentStream.endText();
+	                escribir(contentStream, x, y, "Pagos:");
+	                contentStream.setFont(PDType1Font.HELVETICA_BOLD, 10);
+	                escribir(contentStream, 300, y, "Totales:");
 	                y -= spacing;
-	                contentStream.setFont(PDType1Font.HELVETICA, 10);
+
+	                contentStream.setFont(PDType1Font.HELVETICA, 9);
+
+	                // Guardamos la Y inicial de totales
+	                float yTotales = y;
+
 	                for (CajaMovimiento p : movimiento.getCajaMovimientos()) {
-	                    contentStream.beginText();
-	                    contentStream.newLineAtOffset(x, y);
-	                    contentStream.showText("Método: " + p.getMetodoPago().getNombre() + " - Monto: " + p.getMonto());
-	                    contentStream.endText();
+	                    escribir(contentStream, x, y, p.getMetodoPago().getNombre() + ": " + p.getMonto());
 	                    y -= spacing;
 	                    deuda += p.getMonto();
 	                }
+
+	                // Ahora imprimimos totales a la derecha exactamente a la misma altura
+	                deuda = movimiento.getTotal() - deuda;
+
+	                escribir(contentStream, 300, yTotales, "Total: " + total);
+	                yTotales -= spacing;
+
+	                if (movimiento.getDescuento() != null) {
+	                    escribir(contentStream, 300, yTotales, "Total c/ descuento: " + movimiento.getTotal() + " (" + movimiento.getDescuento() + "%)");
+	                    yTotales -= spacing;
+	                }
+
+	                escribir(contentStream, 300, yTotales, "Saldo Adeudado: " + deuda);
+
+	                // Bajamos Y general para lo que venga después
+	                y = Math.min(y, yTotales) - spacing;
 	            }
-
-	            deuda = movimiento.getTotal() - deuda;
-
-	            contentStream.setFont(PDType1Font.HELVETICA_BOLD, 10);
-	            contentStream.beginText();
-	            contentStream.newLineAtOffset(x, y);
-	            contentStream.showText("Total: " + total);
-	            contentStream.endText();
-	            y -= spacing;
-
-	            if (movimiento.getDescuento() != null) {
-	                contentStream.beginText();
-	                contentStream.newLineAtOffset(x, y);
-	                contentStream.showText("Total con descuento: " + movimiento.getTotal() + "    Descuento: " + movimiento.getDescuento() + "%");
-	                contentStream.endText();
-	                y -= spacing;
-	            }
-
-	            contentStream.beginText();
-	            contentStream.newLineAtOffset(x, y);
-	            contentStream.showText("Adeuda: " + deuda);
-	            contentStream.endText();	            
 	        }
 
 	        ByteArrayOutputStream out = new ByteArrayOutputStream();
@@ -593,6 +514,7 @@ public class PdfService implements IPdfService {
 	        return out.toByteArray();
 	    }
 	}
+
 	
 	@Override
 	public byte[] generarReporteMovimientoCliente(Movimiento movimiento) throws IOException {
@@ -609,12 +531,12 @@ public class PdfService implements IPdfService {
             	InputStream imageStream = getClass().getClassLoader().getResourceAsStream("static/images/logo2.png");
             	PDImageXObject pdImage = PDImageXObject.createFromByteArray(document, imageStream.readAllBytes(), "imagen");
 
-                contentStream.drawImage(pdImage, 40, 730, 100, 50);
+                contentStream.drawImage(pdImage, 40, 700, 100, 100);
                 
                 contentStream.setFont(PDType1Font.HELVETICA_BOLD, 12);
                 contentStream.beginText();
                 contentStream.setLeading(20f);
-                contentStream.newLineAtOffset(50, 750);
+                contentStream.newLineAtOffset(40, 740);
                 
                 contentStream.showText("                                                                                Fecha: " +movimiento.getFecha().format(formatter));
                 contentStream.newLine();
@@ -695,5 +617,20 @@ public class PdfService implements IPdfService {
 	
 	private String safe(String value) {
 	    return (value != null && !value.trim().isEmpty()) ? value : "---";
+	}
+	
+	// Método auxiliar para escribir
+	private void escribir(PDPageContentStream cs, float x, float y, String texto) throws IOException {
+	    cs.beginText();
+	    cs.newLineAtOffset(x, y);
+	    cs.showText(texto);
+	    cs.endText();
+	}
+
+	// Resumen graduación
+	private String resumenGraduacion(Graduacion g) {
+	    return "Esf: " + safe(g.getEsferico()) + ", Cil: " + safe(g.getCilindrico())
+	        + ", Eje: " + safe(g.getEje()) + ", Adic: " + safe(g.getAdicion()) 
+	        + ", Cerca: " + safe(g.getCerca());
 	}
 }
