@@ -26,16 +26,18 @@ public interface IMovimientoDao extends JpaRepository<Movimiento, Long> {
 	@Query("SELECT m FROM Movimiento m WHERE m.local.id = :idLocal")
 	Page<Movimiento> findByLocalId(Long idLocal, Pageable pageable);
 		
-	@Query("SELECT DISTINCT m FROM Movimiento m " +
+	@Query("SELECT m FROM Movimiento m " +
 		       "LEFT JOIN m.cajaMovimientos p " +
 		       "LEFT JOIN p.metodoPago metodo " +
 		       "LEFT JOIN m.paciente paciente " +
 		       "WHERE (:idLocal IS NULL OR m.local.id = :idLocal) AND " +
 		       "(:tipoMovimiento IS NULL OR m.tipoMovimiento = :tipoMovimiento) AND " +
 		       "(:nroFicha IS NULL OR paciente.ficha = :nroFicha) AND " +
-		       "(cast(:fechaInicio as date) IS NULL AND cast(:fechaFin as date) IS NULL  OR (m.fecha >= :fechaInicio AND m.fecha < :fechaFin)) AND " +
-		       "(:metodoPago IS NULL OR metodo.nombre = :metodoPago OR p IS NULL) " +
-		       "ORDER BY m.fecha DESC")
+		       "(:metodoPago IS NULL OR metodo.nombre = :metodoPago) " +
+		       "GROUP BY m " +
+		       "HAVING (COALESCE(MAX(p.fecha), m.fecha) >= CAST(:fechaInicio AS timestamp)) AND " +
+		       "(COALESCE(MAX(p.fecha), m.fecha) < CAST(:fechaFin AS timestamp))"+
+		       "ORDER BY COALESCE(MAX(p.fecha), m.fecha) DESC")
 		Page<Movimiento> filtrarMovimientos(
 		        @Param("idLocal") Long idLocal,
 		        @Param("tipoMovimiento") String tipoMovimiento,
@@ -44,6 +46,22 @@ public interface IMovimientoDao extends JpaRepository<Movimiento, Long> {
 		        @Param("fechaFin") LocalDateTime fechaFin,
 		        @Param("metodoPago") String metodoPago,
 		        Pageable pageable
+		);
+		
+	@Query("SELECT m FROM Movimiento m " +
+		       "LEFT JOIN m.cajaMovimientos p " +
+		       "LEFT JOIN m.paciente paciente " +
+		       "WHERE p IS NULL AND " +
+		       "(:idLocal IS NULL OR m.local.id = :idLocal) AND " +
+		       "(:tipoMovimiento IS NULL OR m.tipoMovimiento = :tipoMovimiento) AND " +
+		       "(:nroFicha IS NULL OR paciente.ficha = :nroFicha) AND " +
+		       "m.fecha >= CAST(:fechaInicio AS timestamp)AND m.fecha < CAST(:fechaFin AS timestamp)")
+		List<Movimiento> buscarMovimientosSinPagos(
+		    @Param("idLocal") Long idLocal,
+		    @Param("tipoMovimiento") String tipoMovimiento,
+		    @Param("nroFicha") Long nroFicha,
+		    @Param("fechaInicio") LocalDateTime fechaInicio,
+		    @Param("fechaFin") LocalDateTime fechaFin
 		);
 	
 	@Query("SELECT DISTINCT m FROM Movimiento m " +

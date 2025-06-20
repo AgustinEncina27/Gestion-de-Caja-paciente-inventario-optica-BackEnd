@@ -17,7 +17,9 @@ import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
+import org.springframework.data.domain.PageImpl;
 
+import com.springboot.backend.optica.dao.ICajaMovimientosDao;
 import com.springboot.backend.optica.dao.IMetodoPagoDao;
 import com.springboot.backend.optica.dao.IMovimientoDao;
 import com.springboot.backend.optica.dao.IProductoLocalDao;
@@ -42,6 +44,9 @@ public class MovimientoServiceImpl implements IMovimientoService {
     private IMetodoPagoDao metodoPagoRepository;
     
     @Autowired
+    private ICajaMovimientosDao cajaMovimientoRepository;
+    
+    @Autowired
     private IPdfService pdfService;
     
     @Autowired
@@ -59,15 +64,47 @@ public class MovimientoServiceImpl implements IMovimientoService {
     @Override
     @Transactional(readOnly = true)
     public Page<Movimiento> filtrarMovimientos(Long idLocal, String tipoMovimiento, Long nroFicha, LocalDate fecha, String metodoPago, Pageable pageable) {
-        if(idLocal== null || idLocal==0)idLocal=null;
-        if (fecha != null) {
-	        LocalDateTime fechaInicio = fecha.atStartOfDay(); // 2025-03-12 00:00:00
-	        LocalDateTime fechaFin = fecha.plusDays(1).atStartOfDay(); // 2025-03-13 00:00:00
-	
-	        return movimientoRepository.filtrarMovimientos(idLocal, tipoMovimiento, nroFicha, fechaInicio, fechaFin, metodoPago, pageable);
-        } else {
-            return movimientoRepository.filtrarMovimientos(idLocal, tipoMovimiento, nroFicha, null, null, metodoPago, pageable);
-        } 
+        if (idLocal != null && idLocal == 0) idLocal = null;
+
+        LocalDateTime fechaInicio = (fecha != null) ? fecha.atStartOfDay() : LocalDateTime.of(2000, 1, 1, 0, 0);
+        LocalDateTime fechaFin = (fecha != null) ? fecha.plusDays(1).atStartOfDay() : LocalDateTime.of(2100, 1, 1, 0, 0);
+
+        Page<CajaMovimiento> pagos = cajaMovimientoRepository.buscarPagosConMovimiento(
+            idLocal, 
+            tipoMovimiento, 
+            nroFicha, 
+            fechaInicio, 
+            fechaFin, 
+            metodoPago, 
+            pageable
+        );
+
+        List<Movimiento> movimientos = pagos.getContent().stream()
+        	    .map(pago -> {
+        	        Movimiento movimiento = clonarMovimiento(pago.getMovimiento());
+        	        movimiento.setFecha(pago.getFecha());
+        	        return movimiento;
+        	    })
+        	    .collect(Collectors.toList());
+
+        return new PageImpl<>(movimientos, pageable, pagos.getTotalElements());
+    }
+    
+    private Movimiento clonarMovimiento(Movimiento original) {
+        Movimiento nuevo = new Movimiento();
+        nuevo.setId(original.getId());
+        nuevo.setTipoMovimiento(original.getTipoMovimiento());
+        nuevo.setTotal(original.getTotal());
+        nuevo.setDescuento(original.getDescuento());
+        nuevo.setTotalImpuesto(original.getTotalImpuesto());
+        nuevo.setDescripcion(original.getDescripcion());
+        nuevo.setPaciente(original.getPaciente());
+        nuevo.setCajaMovimientos(original.getCajaMovimientos());
+        nuevo.setDetalles(original.getDetalles());
+        nuevo.setDetallesAdicionales(original.getDetallesAdicionales());
+        nuevo.setLocal(original.getLocal());
+        nuevo.setEstadoMovimiento(original.getEstadoMovimiento());
+        return nuevo;
     }
     
     @Override
