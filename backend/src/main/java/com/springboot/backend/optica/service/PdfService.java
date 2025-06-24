@@ -412,11 +412,14 @@ public class PdfService implements IPdfService {
 
 	            // Ficha de graduación
 	            if (movimiento.getPaciente() != null && movimiento.getPaciente().getHistorialFichas() != null && !movimiento.getPaciente().getHistorialFichas().isEmpty()) {
-	                Optional<FichaGraduacion> ultimaFichaOpt = movimiento.getPaciente().getHistorialFichas().stream()
-	                        .max(Comparator.comparing(FichaGraduacion::getFecha));
+	            	Optional<FichaGraduacion> fichaOpt = movimiento.getPaciente().getHistorialFichas().stream()
+	            		    .max(Comparator
+	            		        .comparing(FichaGraduacion::getFecha)
+	            		        .thenComparing(FichaGraduacion::getId));
 
-	                if (ultimaFichaOpt.isPresent()) {
-	                    FichaGraduacion ficha = ultimaFichaOpt.get();
+
+	                if (fichaOpt.isPresent()) {
+	                    FichaGraduacion ficha = fichaOpt.get();
 
 	                    contentStream.setFont(PDType1Font.HELVETICA_BOLD, 10);
 	                    contentStream.beginText();
