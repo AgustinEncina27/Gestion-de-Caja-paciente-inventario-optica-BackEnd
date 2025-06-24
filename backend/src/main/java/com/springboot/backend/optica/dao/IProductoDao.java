@@ -20,13 +20,10 @@ public interface IProductoDao extends JpaRepository<Producto, Long> {
 	@Query("SELECT pl.producto FROM ProductoLocal pl WHERE pl.local.id = :localId AND LOWER(pl.producto.marca.nombre) LIKE LOWER(CONCAT('%', :marca, '%'))")
 	List<Producto> findByMarcaAndLocalNoEstricto(@Param("marca") String marca, @Param("localId") Long localId);
 
-	@Query("""
-			  SELECT pl.producto FROM ProductoLocal pl
-			  WHERE LOWER(pl.producto.modelo) LIKE LOWER(CONCAT('%', :modelo, '%'))
-			  AND pl.local.id = :localId
-			""")
-	List<Producto> findByModeloAndLocal(@Param("modelo") String modelo, @Param("localId") Long localId);
-
+	@Query("SELECT pl.producto FROM ProductoLocal pl " +
+		       "WHERE LOWER(pl.producto.modelo) LIKE LOWER(CONCAT('%', :modelo, '%')) " +
+		       "AND pl.local.id = :localId")
+		List<Producto> findByModeloAndLocal(@Param("modelo") String modelo, @Param("localId") Long localId);
 	
 	@Query("SELECT p FROM Producto p WHERE LOWER(p.modelo) = LOWER(:modelo)")
 	List<Producto> findByModelo(@Param("modelo") String modelo);
