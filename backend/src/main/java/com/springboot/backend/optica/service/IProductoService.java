@@ -47,5 +47,7 @@ public interface IProductoService {
     public List<Producto> findByMarcaAndLocalNoEstricto(String marca, Long localId);
     
     public byte[] exportStockToExcel(Long localId) throws IOException;
+    
+    public List<Producto> findByModeloAndLocal(String modelo, Long localId);
 
 }

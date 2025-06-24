@@ -6,6 +6,7 @@ import java.util.List;
 import java.util.Map;
 
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.dao.DataAccessException;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.PageRequest;
 import org.springframework.data.domain.Pageable;
@@ -141,19 +142,53 @@ public class MovimientoController {
     
     @Secured({ "ROLE_ADMIN", "ROLE_VENDEDOR" })
     @PostMapping
-    public ResponseEntity<Movimiento> createMovimiento(@RequestBody Movimiento movimiento) {
-        Movimiento newMovimiento = movimientoService.create(movimiento);
-        return ResponseEntity.status(HttpStatus.CREATED).body(newMovimiento);
+    public ResponseEntity<?> createMovimiento(@RequestBody Movimiento movimiento) {
+        Map<String, Object> response = new HashMap<>();
+
+        try {
+            Movimiento newMovimiento = movimientoService.create(movimiento);
+            response.put("mensaje", "El movimiento ha sido creado!");
+            response.put("movimiento", newMovimiento);
+            return new ResponseEntity<>(response, HttpStatus.CREATED);
+
+        } catch (IllegalArgumentException e) {
+            response.put("mensaje", "Error al crear el movimiento");
+            response.put("error", e.getMessage());
+            return new ResponseEntity<>(response, HttpStatus.BAD_REQUEST);
+
+        } catch (DataAccessException e) {
+            response.put("mensaje", "Error en la base de datos al crear el movimiento");
+            response.put("error", e.getMessage().concat(": ").concat(e.getMostSpecificCause().getMessage()));
+            return new ResponseEntity<>(response, HttpStatus.INTERNAL_SERVER_ERROR);
+        }
     }
     
     @Secured({ "ROLE_ADMIN", "ROLE_VENDEDOR" })
     @PutMapping("/{id}")
-    public ResponseEntity<Movimiento> updateMovimiento(@PathVariable Long id, @RequestBody Movimiento movimiento) {
-    	try {
-            Movimiento updatedMovimiento = movimientoService.update(id, movimiento);
-            return ResponseEntity.ok(updatedMovimiento);
+    public ResponseEntity<?> updateMovimiento(@PathVariable Long id, @RequestBody Movimiento movimiento) {
+        Map<String, Object> response = new HashMap<>();
+
+        Movimiento movimientoActual = movimientoService.findById(id);
+        if (movimientoActual == null) {
+            response.put("mensaje", "Error: No se pudo editar el movimiento ID: "
+                    .concat(id.toString().concat(" no existe en la base de datos!")));
+            return new ResponseEntity<>(response, HttpStatus.NOT_FOUND);
+        }
+
+        try {
+            Movimiento movimientoActualizado = movimientoService.update(id, movimiento);
+            response.put("mensaje", "El movimiento ha sido actualizado!");
+            response.put("movimiento", movimientoActualizado);
+            return new ResponseEntity<>(response, HttpStatus.CREATED);
+
         } catch (IllegalArgumentException e) {
-            return ResponseEntity.badRequest().body(null); // Manejo de errores
+            response.put("mensaje", "Error al actualizar el movimiento");
+            response.put("error", e.getMessage());
+            return new ResponseEntity<>(response, HttpStatus.BAD_REQUEST);
+        } catch (DataAccessException e) {
+            response.put("mensaje", "Error en la base de datos al actualizar el movimiento");
+            response.put("error", e.getMessage().concat(": ").concat(e.getMostSpecificCause().getMessage()));
+            return new ResponseEntity<>(response, HttpStatus.INTERNAL_SERVER_ERROR);
         }
     }
     
