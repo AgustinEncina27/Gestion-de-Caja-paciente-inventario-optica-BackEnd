@@ -90,6 +90,12 @@ public class ProductoController {
 	    return ResponseEntity.ok(productos);
 	}
 	
+	@GetMapping("/productos/buscar")
+	public ResponseEntity<List<Producto>> buscarPorModeloYLocal(@RequestParam String modelo, @RequestParam Long localId) {
+	    List<Producto> productos = productoService.findByModeloAndLocal(modelo, localId);
+	    return ResponseEntity.ok(productos);
+	}
+	
 	@GetMapping("/productos/marca/{marca}")
 	public ResponseEntity<List<Producto>> getProductosPorMarcaNoEstricto(Authentication authentication,
 	                                                                      @PathVariable String marca) {

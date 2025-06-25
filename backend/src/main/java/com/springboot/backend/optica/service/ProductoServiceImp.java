@@ -46,6 +46,12 @@ public class ProductoServiceImp implements IProductoService {
 	
 	@Override
 	@Transactional(readOnly = true)
+	public List<Producto> findByModeloAndLocal(String modelo, Long localId) {
+	    return productoDao.findByModeloAndLocal(modelo, localId);
+	}
+	
+	@Override
+	@Transactional(readOnly = true)
 	public Page<Producto> findAllProducto(Pageable pageable) {
 		Page<Producto> productos = productoDao.findAllProducto(pageable);
 	    // Cargar relaciones de productoLocales manualmente
