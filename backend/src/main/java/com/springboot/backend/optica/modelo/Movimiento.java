@@ -36,7 +36,10 @@ public class Movimiento implements Serializable {
 
     @Column
     private String descripcion;
-
+    
+    @Column
+    private String vendedor;
+    
     // Relación con Paciente
     @ManyToOne(fetch = FetchType.LAZY)
     @JoinColumn(name = "paciente_id", nullable = true)
