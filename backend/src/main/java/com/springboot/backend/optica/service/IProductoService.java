@@ -6,6 +6,7 @@ import java.util.List;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
 
+import com.springboot.backend.optica.dto.ActualizacionRequest;
 import com.springboot.backend.optica.dto.StockPorMaterialDTO;
 import com.springboot.backend.optica.dto.StockTotalSucursalDTO;
 import com.springboot.backend.optica.modelo.Producto;
@@ -47,7 +48,9 @@ public interface IProductoService {
     public List<Producto> findByMarcaAndLocalNoEstricto(String marca, Long localId);
     
     public byte[] exportStockToExcel(Long localId) throws IOException;
-    
+       
     public List<Producto> findByModeloAndLocal(String modelo, Long localId);
+    
+    public void actualizarMasivo(ActualizacionRequest req);
 
 }

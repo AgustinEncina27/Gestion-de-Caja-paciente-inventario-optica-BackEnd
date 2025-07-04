@@ -64,16 +64,20 @@ public class MovimientoServiceImpl implements IMovimientoService {
     
     @Override
     @Transactional(readOnly = true)
-    public Page<Movimiento> filtrarMovimientos(Long idLocal, String tipoMovimiento, Long nroFicha, LocalDate fecha, String metodoPago, Pageable pageable) {
+    public Page<Movimiento> filtrarMovimientos(Long idLocal, String tipoMovimiento, String nombrePaciente, LocalDate fecha, String metodoPago, Pageable pageable) {
         if (idLocal != null && idLocal == 0) idLocal = null;
 
         LocalDateTime fechaInicio = (fecha != null) ? fecha.atStartOfDay() : LocalDateTime.of(2000, 1, 1, 0, 0);
         LocalDateTime fechaFin = (fecha != null) ? fecha.plusDays(1).atStartOfDay() : LocalDateTime.of(2100, 1, 1, 0, 0);
-
+        
+        if (nombrePaciente != null && !nombrePaciente.trim().isEmpty()) {
+            nombrePaciente = "%" + nombrePaciente.toLowerCase() + "%";
+        }
+        
         Page<CajaMovimiento> pagos = cajaMovimientoRepository.buscarPagosConMovimiento(
             idLocal, 
             tipoMovimiento, 
-            nroFicha, 
+            nombrePaciente, 
             fechaInicio, 
             fechaFin, 
             metodoPago, 
@@ -226,7 +230,7 @@ public class MovimientoServiceImpl implements IMovimientoService {
 	                Producto p = d.getProducto();
 	                String key = "PRODUCTO-" + p.getId();
 	                resumen.putIfAbsent(key, new ProductoResumen(p, 0));
-	                resumen.get(key).cantidad += d.getCantidad();
+	                resumen.get(key).agregarSubtotal(d.getSubtotal(), d.getCantidad());
 	            }
 
 	            // Detalles adicionales con palabra "cristal"
@@ -475,8 +479,7 @@ public class MovimientoServiceImpl implements IMovimientoService {
             Marca marca = p.getMarca();
             int cantidad = detalle.getCantidad();
             double costo = p.getCosto() != null ? p.getCosto() : 0;
-            double precio = p.getPrecio();
-            double ganancia = (precio - costo) * cantidad;
+            double ganancia = detalle.getSubtotal() - (costo * cantidad);
 
             resumenPorMarca.computeIfAbsent(marca, m -> new MarcaResumenDTO(m.getNombre(), 0, 0.0));
             MarcaResumenDTO resumen = resumenPorMarca.get(marca);

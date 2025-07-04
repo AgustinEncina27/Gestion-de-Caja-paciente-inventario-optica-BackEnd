@@ -35,7 +35,7 @@ public class ExcelServiceImp {
         headerRow.createCell(0).setCellValue("Modelo");
         headerRow.createCell(1).setCellValue("Marca");
         headerRow.createCell(2).setCellValue("Costo");
-        headerRow.createCell(3).setCellValue("Precio");
+        
         headerRow.createCell(4).setCellValue("Stock");
 
         int rowNum = 1;
@@ -46,7 +46,7 @@ public class ExcelServiceImp {
                 row.createCell(0).setCellValue(producto.getModelo());
                 row.createCell(1).setCellValue(producto.getMarca().getNombre());
                 row.createCell(2).setCellValue(producto.getCosto() != null ? producto.getCosto() : 0);
-                row.createCell(3).setCellValue(producto.getPrecio());
+                
                 row.createCell(4).setCellValue(productoLocal.getStock());
             }
         }
@@ -95,7 +95,7 @@ public class ExcelServiceImp {
 	            Producto p = resumenItem.producto;
 	            double costo = p.getCosto() != null ? p.getCosto() : 0.0;
 	            double precio = p.getPrecio();
-	            double ganancia = (precio - costo) * resumenItem.cantidad;
+	            double ganancia = resumenItem.total - (costo * resumenItem.cantidad);
 
 	            row.createCell(0).setCellValue(p.getModelo());
 
