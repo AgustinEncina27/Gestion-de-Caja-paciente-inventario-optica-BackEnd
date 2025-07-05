@@ -29,6 +29,7 @@ import com.springboot.backend.optica.modelo.MetodoPago;
 import com.springboot.backend.optica.modelo.Movimiento;
 import com.springboot.backend.optica.modelo.Producto;
 import com.springboot.backend.optica.modelo.ProductoLocal;
+import com.springboot.backend.optica.modelo.ProductoResumen;
 import com.springboot.backend.optica.modelo.CajaMovimiento;
 import com.springboot.backend.optica.modelo.DetalleAdicional;
 import com.springboot.backend.optica.modelo.DetalleMovimiento;
@@ -96,6 +97,7 @@ public class MovimientoServiceImpl implements IMovimientoService {
         nuevo.setTipoMovimiento(original.getTipoMovimiento());
         nuevo.setTotal(original.getTotal());
         nuevo.setDescuento(original.getDescuento());
+        nuevo.setVendedor(original.getVendedor());
         nuevo.setTotalImpuesto(original.getTotalImpuesto());
         nuevo.setDescripcion(original.getDescripcion());
         nuevo.setPaciente(original.getPaciente());
@@ -215,30 +217,47 @@ public class MovimientoServiceImpl implements IMovimientoService {
 
 	    List<Movimiento> movimientos = movimientoRepository.filtrarMovimientos(localId, fechaInicio, fechaFin);
 
-	    List<DetalleMovimiento> detalles = movimientos.stream()
-	        .filter(m -> "ENTRADA".equalsIgnoreCase(m.getTipoMovimiento()))
-	        .flatMap(m -> m.getDetalles().stream())
-	        .collect(Collectors.toList());
+	    Map<String, ProductoResumen> resumen = new HashMap<>();
 
-	    // Paso 1: Agrupar cantidades
-	    Map<Producto, Integer> resumen = new HashMap<>();
-	    for (DetalleMovimiento detalle : detalles) {
-	        Producto producto = detalle.getProducto();
-	        resumen.put(producto, resumen.getOrDefault(producto, 0) + detalle.getCantidad());
+	    for (Movimiento m : movimientos) {
+	        if ("ENTRADA".equalsIgnoreCase(m.getTipoMovimiento())) {
+	            // Productos normales
+	            for (DetalleMovimiento d : m.getDetalles()) {
+	                Producto p = d.getProducto();
+	                String key = "PRODUCTO-" + p.getId();
+	                resumen.putIfAbsent(key, new ProductoResumen(p, 0));
+	                resumen.get(key).cantidad += d.getCantidad();
+	            }
+
+	            // Detalles adicionales con palabra "cristal"
+	            for (DetalleAdicional da : m.getDetallesAdicionales()) {
+	                if (da.getDescripcion() != null && da.getDescripcion().toLowerCase().contains("cristal")) {
+	                    String desc = da.getDescripcion().toLowerCase();
+	                    int index = desc.indexOf("cristal");
+	                    if (index != -1) {
+	                        String nombreCristal = da.getDescripcion().substring(index + 7).trim();
+	                        String key = "CRISTAL-" + nombreCristal.toLowerCase();
+	                        resumen.putIfAbsent(key, new ProductoResumen(nombreCristal));
+	                        resumen.get(key).agregarCristal(da.getSubtotal());
+	                    }
+	                }
+	            }
+	        }
 	    }
 
-	    // Paso 2: Ordenar por cantidad descendente y enviar al ExcelService
-	    LinkedHashMap<Producto, Integer> resumenOrdenado = resumen.entrySet().stream()
-	        .sorted(Map.Entry.<Producto, Integer>comparingByValue().reversed())
+	    // Ordenar por cantidad descendente
+	    LinkedHashMap<String, ProductoResumen> resumenOrdenado = resumen.entrySet().stream()
+	        .sorted((e1, e2) -> Integer.compare(e2.getValue().cantidad, e1.getValue().cantidad))
 	        .collect(Collectors.toMap(
 	            Map.Entry::getKey,
 	            Map.Entry::getValue,
-	            (e1, e2) -> e1,
+	            (a, b) -> a,
 	            LinkedHashMap::new
 	        ));
 
 	    return excelService.generarExcelProductosVendidos(resumenOrdenado);
 	}
+
 	
 	@Override
 	@Transactional(readOnly = true)

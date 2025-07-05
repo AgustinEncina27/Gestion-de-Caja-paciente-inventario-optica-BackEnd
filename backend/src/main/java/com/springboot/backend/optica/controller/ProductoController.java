@@ -29,6 +29,7 @@ import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.RestController;
 
+import com.springboot.backend.optica.dto.ActualizacionRequest;
 import com.springboot.backend.optica.dto.StockPorMaterialDTO;
 import com.springboot.backend.optica.dto.StockTotalSucursalDTO;
 import com.springboot.backend.optica.modelo.Producto;
@@ -175,6 +176,13 @@ public class ProductoController {
 	    
 	    List<String> existentes = productoService.obtenerModelosExistentes(modelos, marcaId);
 	    return ResponseEntity.ok(existentes);
+	}
+	
+	@PostMapping("/productos/actualizar-precios")
+	@Secured({ "ROLE_ADMIN"})
+	public ResponseEntity<?> actualizarMasivo(@RequestBody ActualizacionRequest req) {
+	    productoService.actualizarMasivo(req);
+	    return ResponseEntity.ok().build();
 	}
 		
 	@Secured({ "ROLE_ADMIN", "ROLE_VENDEDOR" })

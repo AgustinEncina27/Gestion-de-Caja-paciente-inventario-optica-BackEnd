@@ -38,12 +38,13 @@ public class Producto implements Serializable {
 
     @Column
     private Float costo;
-
+   
+    @ManyToOne(optional = true) // explícitamente indica que puede ser null
+    @JoinColumn(nullable = true) // opcional, si querés nombrar la columna
     @JsonIgnoreProperties(value = {"productos", "hibernateLazyInitializer", "handler"}, allowSetters = true)
-    @ManyToOne
     private MaterialProducto material;
 
-    @Column(length = 20)
+    @Column(length = 20, nullable = true) // nullable explícito
     private String genero;
 
     @JsonIgnoreProperties(value = {"productos", "hibernateLazyInitializer", "handler"}, allowSetters = true)
