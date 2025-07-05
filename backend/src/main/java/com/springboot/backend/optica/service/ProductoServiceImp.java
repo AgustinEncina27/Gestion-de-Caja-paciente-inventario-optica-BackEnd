@@ -13,6 +13,7 @@ import org.springframework.transaction.annotation.Transactional;
 import com.springboot.backend.optica.dao.ILocalDao;
 import com.springboot.backend.optica.dao.IProductoDao;
 import com.springboot.backend.optica.dao.IProductoLocalDao;
+import com.springboot.backend.optica.dto.ActualizacionRequest;
 import com.springboot.backend.optica.dto.StockPorMaterialDTO;
 import com.springboot.backend.optica.dto.StockTotalSucursalDTO;
 import com.springboot.backend.optica.modelo.Local;
@@ -92,6 +93,39 @@ public class ProductoServiceImp implements IProductoService {
 
         return stockPorMaterial;
     }
+	
+	@Override
+	@Transactional
+	public void actualizarMasivo(ActualizacionRequest req) {
+		List<Producto> filtrados = productoDao.findByFiltros(
+			    req.getCategoria(),
+			    req.getProveedor(),
+			    req.getMaterial(),
+			    req.getMarca()
+			);
+
+	    for (Producto p : filtrados) {
+	        if ("precio".equalsIgnoreCase(req.getTipo())) {
+	            float nuevo = calcularNuevoValor(p.getPrecio(), req);
+	            p.setPrecio(nuevo);
+	        } else if ("costo".equalsIgnoreCase(req.getTipo())) {
+	            float actual = p.getCosto() != null ? p.getCosto() : 0f;
+	            float nuevo = calcularNuevoValor(actual, req);
+	            p.setCosto(nuevo);
+	        }
+	        p.setUltimaActualizacion(java.time.LocalDate.now());
+	        productoDao.save(p);
+	    }
+	}
+	
+	private float calcularNuevoValor(float actual, ActualizacionRequest req) {
+	    if ("porcentaje".equalsIgnoreCase(req.getTipoCambio())) {
+	        return actual + (actual * (req.getValor() / 100));
+	    } else if ("fijo".equalsIgnoreCase(req.getTipoCambio())) {
+	        return req.getValor();
+	    }
+	    return actual;
+	}
 	
 	@Override
 	@Transactional(readOnly = true)

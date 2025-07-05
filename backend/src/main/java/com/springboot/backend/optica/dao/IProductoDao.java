@@ -43,6 +43,20 @@ public interface IProductoDao extends JpaRepository<Producto, Long> {
 	
 	@Query("SELECT DISTINCT p FROM Producto p " +
 		       "LEFT JOIN p.categorias c " +
+		       "LEFT JOIN p.proveedores prov " +
+		       "WHERE (:categoriaId IS NULL OR c.id = :categoriaId) " +
+		       "AND (:proveedorId IS NULL OR prov.id = :proveedorId) " +
+		       "AND (:materialId IS NULL OR p.material.id = :materialId) " +
+		       "AND (:marcaId IS NULL OR p.marca.id = :marcaId)")
+		List<Producto> findByFiltros(
+		    @Param("categoriaId") Long categoriaId,
+		    @Param("proveedorId") Long proveedorId,
+		    @Param("materialId") Long materialId,
+		    @Param("marcaId") Long marcaId
+		);
+	
+	@Query("SELECT DISTINCT p FROM Producto p " +
+		       "LEFT JOIN p.categorias c " +
 		       "WHERE (:genero IS NULL OR p.genero = :genero) " +
 		       "AND (:marca IS NULL OR p.marca.id = :marca) " +
 		       "AND (:categoria IS NULL OR c.id = :categoria) ORDER BY p.marca.nombre ASC")

@@ -127,11 +127,11 @@ public class PacienteServiceImp implements IPacienteService {
 	            .orElseThrow(() -> new RuntimeException("Paciente no encontrado"));
 
 	    FichaGraduacion ficha = paciente.getHistorialFichas().stream()
-	    	    .max(Comparator
-	    	        .comparing(FichaGraduacion::getFecha)
-	    	        .thenComparing(FichaGraduacion::getId))
-	    	    .orElse(null);
-
+	    		.max(Comparator
+	    		        .comparing(FichaGraduacion::getFecha)
+	    		        .thenComparing(FichaGraduacion::getId))
+	            .orElse(null);
+	    	    
 	    if (ficha == null) {
 	        ficha = new FichaGraduacion();
 	        ficha.setFecha(LocalDate.now());

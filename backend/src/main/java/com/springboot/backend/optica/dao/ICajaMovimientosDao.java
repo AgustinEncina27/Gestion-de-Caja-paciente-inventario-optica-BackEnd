@@ -7,9 +7,11 @@ import org.springframework.data.domain.Page;
 import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.data.jpa.repository.Query;
 import org.springframework.data.repository.query.Param;
+import org.springframework.stereotype.Repository;
 
 import com.springboot.backend.optica.modelo.CajaMovimiento;
 
+@Repository
 public interface ICajaMovimientosDao extends JpaRepository<CajaMovimiento, Long> {
 
 	@Query(
@@ -33,6 +35,6 @@ public interface ICajaMovimientosDao extends JpaRepository<CajaMovimiento, Long>
 		    @Param("metodoPago") String metodoPago,
 		    Pageable pageable
 		);
-	
+
 
 }
