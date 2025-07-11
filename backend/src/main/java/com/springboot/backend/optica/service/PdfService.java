@@ -406,13 +406,13 @@ public class PdfService implements IPdfService {
 	
 	private String generarTextoGraduacionSimple(Optional<Graduacion> grad) {
 	    return grad.map(g -> String.format("Esf: %s | Cil: %s | Eje: %s",
-	        formatFloat(g.getEsferico()), formatFloat(g.getCilindrico()), formatFloat(g.getEje())))
+	        formatFloat(g.getEsferico()), formatFloat(g.getCilindrico()), safe(g.getEje())))
 	        .orElse("Sin datos");
 	}
 
 	private String generarTextoGraduacionConAdicion(Optional<Graduacion> grad, Float adicion) {
 	    String textoGrad = grad.map(g -> String.format("Esf: %s | Cil: %s | Eje: %s",
-	        formatFloat(g.getEsferico()), formatFloat(g.getCilindrico()), formatFloat(g.getEje())))
+	        formatFloat(g.getEsferico()), formatFloat(g.getCilindrico()), safe(g.getEje())))
 	        .orElse("Sin datos");
 	    return textoGrad + " | Adición: " + formatFloat(adicion);
 	}
