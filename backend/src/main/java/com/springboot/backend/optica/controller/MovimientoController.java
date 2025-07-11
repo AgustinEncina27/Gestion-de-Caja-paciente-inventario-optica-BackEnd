@@ -59,7 +59,7 @@ public class MovimientoController {
  			Authentication authentication,
  	        @RequestParam(required = false) Long idLocal,
  	        @RequestParam(required = false) String tipoMovimiento,
- 	        @RequestParam(required = false) Long nroFicha,
+ 	        @RequestParam(required = false) String nombrePaciente,
  	        @RequestParam(required = false) @DateTimeFormat(iso = DateTimeFormat.ISO.DATE) LocalDate fecha,
  	        @RequestParam(required = false) String metodoPago,
  	        @RequestParam(defaultValue = "0") int page,
@@ -72,10 +72,10 @@ public class MovimientoController {
  	    Page<Movimiento> movimientos;
 
  	    if ("ROLE_ADMIN".equals(rol)) {
- 	        movimientos = movimientoService.filtrarMovimientos(idLocal, tipoMovimiento, nroFicha, fecha, metodoPago, pageable);
+ 	        movimientos = movimientoService.filtrarMovimientos(idLocal, tipoMovimiento, nombrePaciente, fecha, metodoPago, pageable);
 
  	    } else {
- 	        movimientos = movimientoService.filtrarMovimientos(idLocalUser, tipoMovimiento, nroFicha, fecha, metodoPago, pageable);
+ 	        movimientos = movimientoService.filtrarMovimientos(idLocalUser, tipoMovimiento, nombrePaciente, fecha, metodoPago, pageable);
 
  	    }
 

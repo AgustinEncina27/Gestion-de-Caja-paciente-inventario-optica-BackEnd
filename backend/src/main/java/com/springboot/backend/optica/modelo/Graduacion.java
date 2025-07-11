@@ -21,12 +21,14 @@ public class Graduacion implements Serializable {
 
     @Enumerated(EnumType.STRING)
     private Ojo ojo; // DERECHO o IZQUIERDO
+    
+    @Enumerated(EnumType.STRING)
+    @Column(name = "tipo_graduacion")
+    private TipoGraduacion tipo;
 
     private Float esferico;
     private Float cilindrico;
     private Float eje;
-    private Float adicion;
-    private Float cerca;
 
     @ManyToOne(fetch = FetchType.LAZY)
     @JoinColumn(name = "ficha_graduacion_id", nullable = false)
@@ -38,5 +40,10 @@ public class Graduacion implements Serializable {
     public enum Ojo {
         DERECHO,
         IZQUIERDO
+    }
+    
+    public enum TipoGraduacion {
+        LEJOS,
+        CERCA
     }
 }
