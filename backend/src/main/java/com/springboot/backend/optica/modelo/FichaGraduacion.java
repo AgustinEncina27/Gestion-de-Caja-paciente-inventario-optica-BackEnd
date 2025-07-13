@@ -41,10 +41,13 @@ public class FichaGraduacion implements Serializable {
     @JsonIgnoreProperties({"historialFichas", "hibernateLazyInitializer", "handler"})
     private Paciente paciente;
 
-    // 👁️ Lista de graduaciones (por ojo)
     @OneToMany(mappedBy = "fichaGraduacion", cascade = CascadeType.ALL, orphanRemoval = true)
     @JsonIgnoreProperties({"fichaGraduacion", "hibernateLazyInitializer", "handler"})
     private List<Graduacion> graduaciones;
+    
+    private Float adicionDerecho;
+    
+    private Float adicionIzquierdo;
 
     // 🧾 Lista de cristales vendidos asociados a esta ficha
     @OneToMany(mappedBy = "fichaGraduacion", cascade = CascadeType.ALL, orphanRemoval = true)

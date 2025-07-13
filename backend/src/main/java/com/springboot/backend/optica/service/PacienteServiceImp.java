@@ -133,34 +133,57 @@ public class PacienteServiceImp implements IPacienteService {
 	            .orElse(null);
 	    	    
 	    if (ficha == null) {
-	        ficha = new FichaGraduacion();
+	    	ficha = new FichaGraduacion(); // ✅ Crear nueva ficha
 	        ficha.setFecha(LocalDate.now());
 	        ficha.setPaciente(paciente);
-	        ficha = fichaGraduacionDao.save(ficha); // guardar explícitamente
+	        fichaGraduacionDao.save(ficha); 
+	    	List<Graduacion> graduaciones = new ArrayList<>();
 
-	        // Crear graduación ojo DERECHO
-	        Graduacion gradDerecho = new Graduacion();
-	        gradDerecho.setOjo(Graduacion.Ojo.DERECHO);
-	        gradDerecho.setEsferico(0f);
-	        gradDerecho.setCilindrico(0f);
-	        gradDerecho.setEje(0f);
-	        gradDerecho.setAdicion(0f);
-	        gradDerecho.setCerca(0f);
-	        gradDerecho.setFichaGraduacion(ficha);
+	        // Lejos DERECHO
+	        Graduacion gradLejosDerecho = new Graduacion();
+	        gradLejosDerecho.setOjo(Graduacion.Ojo.DERECHO);
+	        gradLejosDerecho.setEsferico(0f);
+	        gradLejosDerecho.setCilindrico(0f);
+	        gradLejosDerecho.setEje(0f);
+	        gradLejosDerecho.setTipo(Graduacion.TipoGraduacion.LEJOS);
+	        gradLejosDerecho.setFichaGraduacion(ficha);
+	        graduaciones.add(gradLejosDerecho);
 
-	        // Crear graduación ojo IZQUIERDO
-	        Graduacion gradIzquierdo = new Graduacion();
-	        gradIzquierdo.setOjo(Graduacion.Ojo.IZQUIERDO);
-	        gradIzquierdo.setEsferico(0f);
-	        gradIzquierdo.setCilindrico(0f);
-	        gradIzquierdo.setEje(0f);
-	        gradIzquierdo.setAdicion(0f);
-	        gradIzquierdo.setCerca(0f);
-	        gradIzquierdo.setFichaGraduacion(ficha);
+	        // Lejos IZQUIERDO
+	        Graduacion gradLejosIzquierdo = new Graduacion();
+	        gradLejosIzquierdo.setOjo(Graduacion.Ojo.IZQUIERDO);
+	        gradLejosIzquierdo.setEsferico(0f);
+	        gradLejosIzquierdo.setCilindrico(0f);
+	        gradLejosIzquierdo.setEje(0f);
+	        gradLejosIzquierdo.setTipo(Graduacion.TipoGraduacion.LEJOS);
+	        gradLejosIzquierdo.setFichaGraduacion(ficha);
+	        graduaciones.add(gradLejosIzquierdo);
 
-	        // Guardar ambas graduaciones
-	        graduacionDao.save(gradDerecho);
-	        graduacionDao.save(gradIzquierdo);
+	        // Cerca DERECHO
+	        Graduacion gradCercaDerecho = new Graduacion();
+	        gradCercaDerecho.setOjo(Graduacion.Ojo.DERECHO);
+	        gradCercaDerecho.setEsferico(0f);
+	        gradCercaDerecho.setCilindrico(0f);
+	        gradCercaDerecho.setEje(0f);
+	        gradCercaDerecho.setTipo(Graduacion.TipoGraduacion.CERCA);
+	        gradCercaDerecho.setFichaGraduacion(ficha);
+	        graduaciones.add(gradCercaDerecho);
+
+	        // Cerca IZQUIERDO
+	        Graduacion gradCercaIzquierdo = new Graduacion();
+	        gradCercaIzquierdo.setOjo(Graduacion.Ojo.IZQUIERDO);
+	        gradCercaIzquierdo.setEsferico(0f);
+	        gradCercaIzquierdo.setCilindrico(0f);
+	        gradCercaIzquierdo.setEje(0f);
+	        gradCercaIzquierdo.setTipo(Graduacion.TipoGraduacion.CERCA);
+	        gradCercaIzquierdo.setFichaGraduacion(ficha);
+	        graduaciones.add(gradCercaIzquierdo);
+
+	        // Guardar todas las graduaciones
+	        graduacionDao.saveAll(graduaciones);
+
+	        ficha.setGraduaciones(graduaciones);
+	        fichaGraduacionDao.save(ficha);
 	    }
 
 	    CristalHistorial nuevoCristal = new CristalHistorial();
