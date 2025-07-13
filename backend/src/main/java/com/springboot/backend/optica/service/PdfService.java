@@ -34,7 +34,6 @@ public class PdfService implements IPdfService {
 	        document.addPage(page);
 
 	        double deuda = 0;
-	        double total = 0;
 	        float x = 50;
 	        float y = 750;
 	        float spacing = 15;
@@ -44,7 +43,7 @@ public class PdfService implements IPdfService {
 	        try (PDPageContentStream contentStream = new PDPageContentStream(document, page)) {
 	            InputStream imageStream = getClass().getClassLoader().getResourceAsStream("static/images/logo2.png");
 	            PDImageXObject pdImage = PDImageXObject.createFromByteArray(document, imageStream.readAllBytes(), "imagen");
-	            contentStream.drawImage(pdImage, 450, 710, 100, 50);
+	            contentStream.drawImage(pdImage, 450, 650, 150, 150);
 
 	            // Encabezado
 	            contentStream.setFont(PDType1Font.HELVETICA_BOLD, 12);
@@ -232,7 +231,6 @@ public class PdfService implements IPdfService {
 	                    contentStream.showText(d.getProducto().getModelo() + " - Marca: " + d.getProducto().getMarca().getNombre() + " - Cantidad: " + d.getCantidad() + " - Precio: " + d.getSubtotal());
 	                    contentStream.endText();
 	                    y -= spacing;
-	                    total += d.getSubtotal();
 	                }
 	            }
 
@@ -250,7 +248,6 @@ public class PdfService implements IPdfService {
 	                    contentStream.showText(d.getDescripcion() + " - Precio: " + d.getSubtotal());
 	                    contentStream.endText();
 	                    y -= spacing;
-	                    total += d.getSubtotal();
 	                }
 	            }
 
@@ -277,7 +274,7 @@ public class PdfService implements IPdfService {
 	            contentStream.setFont(PDType1Font.HELVETICA_BOLD, 10);
 	            contentStream.beginText();
 	            contentStream.newLineAtOffset(x, y);
-	            contentStream.showText("Total: " + total);
+	            contentStream.showText("Total: " + movimiento.getTotal());
 	            contentStream.endText();
 	            y -= spacing;
 
@@ -307,7 +304,6 @@ public class PdfService implements IPdfService {
             PDPage page = new PDPage();
             document.addPage(page);
             double deuda=0;
-            double total=0;
             
             DateTimeFormatter formatter = DateTimeFormatter.ofPattern("dd/MM/yyyy");
             
@@ -316,12 +312,12 @@ public class PdfService implements IPdfService {
             	InputStream imageStream = getClass().getClassLoader().getResourceAsStream("static/images/logo2.png");
             	PDImageXObject pdImage = PDImageXObject.createFromByteArray(document, imageStream.readAllBytes(), "imagen");
 
-                contentStream.drawImage(pdImage, 40, 730, 100, 50);
+                contentStream.drawImage(pdImage, 40, 700, 100, 100);
                 
                 contentStream.setFont(PDType1Font.HELVETICA_BOLD, 12);
                 contentStream.beginText();
                 contentStream.setLeading(20f);
-                contentStream.newLineAtOffset(50, 750);
+                contentStream.newLineAtOffset(50, 740);
                 
                 contentStream.showText("                                                                                Fecha: " +movimiento.getFecha().format(formatter));
                 contentStream.newLine();
@@ -345,7 +341,6 @@ public class PdfService implements IPdfService {
 	                for (DetalleMovimiento detalle : movimiento.getDetalles()) {
 	                    contentStream.showText(detalle.getProducto().getModelo() +" - Marca: "+detalle.getProducto().getMarca().getNombre()+ " - Cantidad: " + detalle.getCantidad() + " - Precio: " + detalle.getSubtotal());
 	                    contentStream.newLine();
-	                    total+=detalle.getSubtotal();
 	                }
                 }
                 
@@ -358,7 +353,6 @@ public class PdfService implements IPdfService {
 	                for (DetalleAdicional detalle : movimiento.getDetallesAdicionales()) {
 	                    contentStream.showText(detalle.getDescripcion() +" - Precio: " + detalle.getSubtotal());
 	                    contentStream.newLine();
-	                    total+=detalle.getSubtotal();
 	                }
                 }
                 
@@ -377,7 +371,7 @@ public class PdfService implements IPdfService {
 	            }
                 
                 contentStream.setFont(PDType1Font.HELVETICA_BOLD, 10);
-                contentStream.showText("Total: " + total);
+                contentStream.showText("Total: " + movimiento.getTotal());
                 if(movimiento.getDescuento() !=null ) {
                 	contentStream.showText("       Total con descuento: " + movimiento.getTotal());
                     contentStream.showText("       Descuento: " + movimiento.getDescuento()+"%");
