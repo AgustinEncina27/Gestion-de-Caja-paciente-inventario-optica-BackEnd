@@ -479,8 +479,7 @@ public class MovimientoServiceImpl implements IMovimientoService {
             Marca marca = p.getMarca();
             int cantidad = detalle.getCantidad();
             double costo = p.getCosto() != null ? p.getCosto() : 0;
-            double precio = p.getPrecio();
-            double ganancia = (precio - costo) * cantidad;
+            double ganancia = detalle.getSubtotal() - (costo * cantidad);
 
             resumenPorMarca.computeIfAbsent(marca, m -> new MarcaResumenDTO(m.getNombre(), 0, 0.0));
             MarcaResumenDTO resumen = resumenPorMarca.get(marca);
