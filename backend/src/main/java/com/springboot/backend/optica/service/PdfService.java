@@ -34,7 +34,6 @@ public class PdfService implements IPdfService {
 	        document.addPage(page);
 
 	        double deuda = 0;
-	        double total = 0;
 	        float x = 50;
 	        float y = 750;
 	        float spacing = 15;
