@@ -160,7 +160,6 @@ public class PacienteController {
 	                if (ficha.getGraduaciones() != null) {
 	                    ficha.getGraduaciones().forEach(graduacion -> graduacion.setFichaGraduacion(ficha));
 	                }
-
 	                if (ficha.getCristales() != null) {
 	                    ficha.getCristales().forEach(cristal -> cristal.setFichaGraduacion(ficha));
 	                }
@@ -211,7 +210,7 @@ public class PacienteController {
 	                ficha.setPaciente(currentPaciente); // usar el paciente actual (no el que viene del JSON)
 
 	                if (ficha.getGraduaciones() != null) {
-	                    ficha.getGraduaciones().forEach(g -> g.setFichaGraduacion(ficha));
+	                    ficha.getGraduaciones().forEach(graduacion -> graduacion.setFichaGraduacion(ficha));
 	                }
 
 	                if (ficha.getCristales() != null) {
@@ -225,6 +224,7 @@ public class PacienteController {
 	        currentPaciente.setDireccion(paciente.getDireccion());
 	        currentPaciente.setObraSocial(paciente.getObraSocial());
 	        currentPaciente.setCelular(paciente.getCelular());
+	        currentPaciente.setObservaciones(paciente.getObservaciones());
 	        currentPaciente.setGenero(paciente.getGenero());
 	        currentPaciente.setLocal(paciente.getLocal());
 	        currentPaciente.setDocumento(paciente.getDocumento());
