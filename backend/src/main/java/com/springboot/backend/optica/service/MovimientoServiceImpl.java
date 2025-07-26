@@ -30,6 +30,7 @@ import com.springboot.backend.optica.modelo.Movimiento;
 import com.springboot.backend.optica.modelo.Producto;
 import com.springboot.backend.optica.modelo.ProductoLocal;
 import com.springboot.backend.optica.modelo.ProductoResumen;
+import com.springboot.backend.optica.modelo.TarjetaDetalle;
 import com.springboot.backend.optica.modelo.CajaMovimiento;
 import com.springboot.backend.optica.modelo.DetalleAdicional;
 import com.springboot.backend.optica.modelo.DetalleMovimiento;
@@ -52,7 +53,7 @@ public class MovimientoServiceImpl implements IMovimientoService {
     
     @Autowired
     private IProductoLocalDao  productoLocalRepository;
-    
+        
     @Autowired
     private ExcelServiceImp excelService;
 
@@ -74,13 +75,23 @@ public class MovimientoServiceImpl implements IMovimientoService {
             nombrePaciente = "%" + nombrePaciente.toLowerCase() + "%";
         }
         
+     // 🔁 Convertir String a Enum
+        MetodoPago.TipoMetodoPago tipoMetodoPagoEnum = null;
+        if (metodoPago != null && !metodoPago.isEmpty()) {
+            try {
+                tipoMetodoPagoEnum = MetodoPago.TipoMetodoPago.valueOf(metodoPago);
+            } catch (IllegalArgumentException e) {
+                throw new RuntimeException("Método de pago inválido: " + metodoPago);
+            }
+        }
+        
         Page<CajaMovimiento> pagos = cajaMovimientoRepository.buscarPagosConMovimiento(
             idLocal, 
             tipoMovimiento, 
             nombrePaciente, 
             fechaInicio, 
             fechaFin, 
-            metodoPago, 
+            tipoMetodoPagoEnum, 
             pageable
         );
 
@@ -127,40 +138,35 @@ public class MovimientoServiceImpl implements IMovimientoService {
     
     @Override
     @Transactional(readOnly = true)
-    public Map<String, Double> calcularTotales(Long idLocal) {
+    public Map<MetodoPago.TipoMetodoPago, Double> calcularTotales(Long idLocal) {
         // Obtener todos los métodos de pago
         List<MetodoPago> metodosPago = metodoPagoRepository.findAll();
-        Map<String, Double> totales = new HashMap<>();
+        Map<MetodoPago.TipoMetodoPago, Double> totales = new HashMap<>();
 
-        // Inicializar los totales en 0 para cada método de pago
+        // Inicializar los totales en 0 para cada tipo de método de pago
         for (MetodoPago metodoPago : metodosPago) {
-            totales.put(metodoPago.getNombre(), 0.0);
+            totales.put(metodoPago.getTipo(), 0.0);
         }
 
         // Obtener movimientos según el local seleccionado
-        List<Movimiento> movimientos;
-        if (idLocal == 0) {
-            movimientos = movimientoRepository.findAll();
-        } else {
-            movimientos = movimientoRepository.findByLocalId(idLocal);
-        }
+        List<Movimiento> movimientos = (idLocal == 0)
+            ? movimientoRepository.findAll()
+            : movimientoRepository.findByLocalId(idLocal);
 
-        // Calcular los totales para cada método de pago teniendo en cuenta el tipo de movimiento
+        // Calcular los totales por método de pago
         for (Movimiento movimiento : movimientos) {
-            // Iterar sobre los pagos del movimiento
             for (CajaMovimiento movimientoCaja : movimiento.getCajaMovimientos()) {
-                String metodoPagoNombre = movimientoCaja.getMetodoPago().getNombre();
-                if (totales.containsKey(metodoPagoNombre)) {
-                    double totalActual = totales.get(metodoPagoNombre);
+                MetodoPago.TipoMetodoPago tipo = movimientoCaja.getMetodoPago().getTipo();
+                if (tipo != null && totales.containsKey(tipo)) {
+                    double totalActual = totales.get(tipo);
 
-                    // Sumar o restar según el tipo de movimiento
                     if ("ENTRADA".equalsIgnoreCase(movimiento.getTipoMovimiento())) {
                         totalActual += movimientoCaja.getMontoImpuesto();
                     } else if ("SALIDA".equalsIgnoreCase(movimiento.getTipoMovimiento())) {
                         totalActual -= movimientoCaja.getMontoImpuesto();
                     }
 
-                    totales.put(metodoPagoNombre, totalActual);
+                    totales.put(tipo, totalActual);
                 }
             }
         }
@@ -171,39 +177,37 @@ public class MovimientoServiceImpl implements IMovimientoService {
 	@Override
     @Transactional(readOnly = true)
 	public Map<String, Map<String, Double>> calcularTotales(FiltroDTO filtros) {
-	    // Obtener todos los métodos de pago
 	    List<MetodoPago> metodosPago = metodoPagoRepository.findAll();
 	    Map<String, Map<String, Double>> totales = new HashMap<>();
 	    Long localid = filtros.getLocal() == 0 ? null : filtros.getLocal();
 
-	    // Inicializar las entradas y salidas en 0.0 para cada método de pago
 	    for (MetodoPago metodoPago : metodosPago) {
-	        Map<String, Double> entradaSalida = new HashMap<>();
-	        entradaSalida.put("entrada", 0.0);
-	        entradaSalida.put("salida", 0.0);
-	        totales.put(metodoPago.getNombre(), entradaSalida);
+	        String tipo = metodoPago.getTipo().name();
+	        // Inicializar entrada/salida si aún no está en el mapa
+	        totales.putIfAbsent(tipo, new HashMap<>());
+	        totales.get(tipo).putIfAbsent("entrada", 0.0);
+	        totales.get(tipo).putIfAbsent("salida", 0.0);
 	    }
 
 	    LocalDateTime fechaInicio = filtros.getFechaInicio().atStartOfDay();
 	    LocalDateTime fechaFin = filtros.getFechaFin().atTime(23, 59, 59);
 
-	    // Obtener movimientos filtrados
-	    List<Movimiento> movimientos = movimientoRepository.filtrarMovimientos(
-	            localid, fechaInicio, fechaFin
-	    );
+	    List<Movimiento> movimientos = movimientoRepository.filtrarMovimientos(localid, fechaInicio, fechaFin);
 
-	    // Calcular las entradas y salidas por método de pago
 	    for (Movimiento movimiento : movimientos) {
 	        for (CajaMovimiento movimientoCaja : movimiento.getCajaMovimientos()) {
-	            String metodoPagoNombre = movimientoCaja.getMetodoPago().getNombre();
-	            if (totales.containsKey(metodoPagoNombre)) {
-	                Map<String, Double> entradaSalida = totales.get(metodoPagoNombre);
-	                double monto = movimientoCaja.getMontoImpuesto();
+	            MetodoPago metodoPago = movimientoCaja.getMetodoPago();
+	            if (metodoPago != null && metodoPago.getTipo() != null) {
+	                String tipo = metodoPago.getTipo().name();
+	                if (totales.containsKey(tipo)) {
+	                    Map<String, Double> entradaSalida = totales.get(tipo);
+	                    double monto = movimientoCaja.getMontoImpuesto();
 
-	                if ("ENTRADA".equalsIgnoreCase(movimiento.getTipoMovimiento())) {
-	                    entradaSalida.put("entrada", entradaSalida.get("entrada") + monto);
-	                } else if ("SALIDA".equalsIgnoreCase(movimiento.getTipoMovimiento())) {
-	                    entradaSalida.put("salida", entradaSalida.get("salida") + monto);
+	                    if ("ENTRADA".equalsIgnoreCase(movimiento.getTipoMovimiento())) {
+	                        entradaSalida.put("entrada", entradaSalida.getOrDefault("entrada", 0.0) + monto);
+	                    } else if ("SALIDA".equalsIgnoreCase(movimiento.getTipoMovimiento())) {
+	                        entradaSalida.put("salida", entradaSalida.getOrDefault("salida", 0.0) + monto);
+	                    }
 	                }
 	            }
 	        }
@@ -305,48 +309,52 @@ public class MovimientoServiceImpl implements IMovimientoService {
         
     @Override
 	@Transactional
-    public Movimiento create(Movimiento movimiento) {
-    	// Asignar el movimiento en cada DetalleMovimiento
-        if (movimiento.getDetalles() != null) {
-            for (DetalleMovimiento detalle : movimiento.getDetalles()) {
-                detalle.setMovimiento(movimiento);
-            }
-        }
-        
-        // Asignar el movimiento en cada DetalleMovimiento
-        if (movimiento.getDetallesAdicionales() != null) {
-            for (DetalleAdicional detalleAdicional : movimiento.getDetallesAdicionales()) {
-            	detalleAdicional.setMovimiento(movimiento);
-            }
-        }
+	public Movimiento create(Movimiento movimiento) {
+	    // Asignar el movimiento en cada DetalleMovimiento
+	    if (movimiento.getDetalles() != null) {
+	        for (DetalleMovimiento detalle : movimiento.getDetalles()) {
+	            detalle.setMovimiento(movimiento);
+	        }
+	    }
 
-        // Asignar el movimiento en cada CajaMovimientos
-        if (movimiento.getCajaMovimientos() != null) {
-            for (CajaMovimiento pago : movimiento.getCajaMovimientos()) {
-                pago.setMovimiento(movimiento);
-            }
-        }
-        
-     // Verificar el tipo de movimiento y descontar stock si es SALIDA
-        if ("ENTRADA".equalsIgnoreCase(movimiento.getTipoMovimiento()) && movimiento.getDetalles() != null) {
-            for (DetalleMovimiento detalle : movimiento.getDetalles()) {
-                ProductoLocal productoLocal = productoLocalRepository.findByProductoIdAndLocalId(
-                        detalle.getProducto().getId(), movimiento.getLocal().getId())
-                    .orElseThrow(() -> new IllegalArgumentException("Producto no encontrado en el local."));
+	    // Asignar el movimiento en cada DetalleAdicional
+	    if (movimiento.getDetallesAdicionales() != null) {
+	        for (DetalleAdicional detalleAdicional : movimiento.getDetallesAdicionales()) {
+	            detalleAdicional.setMovimiento(movimiento);
+	        }
+	    }
 
-                // Verificar si hay suficiente stock
-                if (productoLocal.getStock() < detalle.getCantidad()) {
-                    throw new IllegalArgumentException("Stock insuficiente para el producto: " + detalle.getProducto().getModelo());
-                }
+	    // Asignar el movimiento en cada CajaMovimiento
+	    if (movimiento.getCajaMovimientos() != null) {
+	    	for (CajaMovimiento pago : movimiento.getCajaMovimientos()) {
+	    	    pago.setMovimiento(movimiento);
 
-                // Descontar el stock
-                productoLocal.setStock(productoLocal.getStock() - detalle.getCantidad());
-                productoLocalRepository.save(productoLocal);
-            }
-        }
-        
-        return movimientoRepository.save(movimiento);
-    }
+	    	    // Establecer la relación inversa tarjetaDetalle -> cajaMovimiento
+	    	    TarjetaDetalle detalle = pago.getTarjetaDetalle();
+	    	    if (detalle != null) {
+	    	        detalle.setCajaMovimiento(pago);
+	    	    }
+	    	}
+	    }
+
+	    // Descontar stock si es ENTRADA
+	    if ("ENTRADA".equalsIgnoreCase(movimiento.getTipoMovimiento()) && movimiento.getDetalles() != null) {
+	        for (DetalleMovimiento detalle : movimiento.getDetalles()) {
+	            ProductoLocal productoLocal = productoLocalRepository.findByProductoIdAndLocalId(
+	                    detalle.getProducto().getId(), movimiento.getLocal().getId())
+	                .orElseThrow(() -> new IllegalArgumentException("Producto no encontrado en el local."));
+
+	            if (productoLocal.getStock() < detalle.getCantidad()) {
+	                throw new IllegalArgumentException("Stock insuficiente para el producto: " + detalle.getProducto().getModelo());
+	            }
+
+	            productoLocal.setStock(productoLocal.getStock() - detalle.getCantidad());
+	            productoLocalRepository.save(productoLocal);
+	        }
+	    }
+
+	    return movimientoRepository.save(movimiento);
+	}
     
     @Transactional
     public Movimiento update(Long id, Movimiento movimiento) {
@@ -381,9 +389,15 @@ public class MovimientoServiceImpl implements IMovimientoService {
 
         // Asignar el movimiento en cada CajaMovimientos
         if (movimiento.getCajaMovimientos() != null) {
-            for (CajaMovimiento pago : movimiento.getCajaMovimientos()) {
-                pago.setMovimiento(movimiento);
-            }
+        	for (CajaMovimiento pago : movimiento.getCajaMovimientos()) {
+        	    pago.setMovimiento(movimiento);
+
+        	    // Establecer la relación inversa tarjetaDetalle -> cajaMovimiento
+        	    TarjetaDetalle detalle = pago.getTarjetaDetalle();
+        	    if (detalle != null) {
+        	        detalle.setCajaMovimiento(pago);
+        	    }
+        	}
         }
         
      

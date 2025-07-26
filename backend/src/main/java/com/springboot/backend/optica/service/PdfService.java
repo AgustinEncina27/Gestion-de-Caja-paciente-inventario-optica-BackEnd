@@ -7,7 +7,9 @@ import com.springboot.backend.optica.modelo.DetalleAdicional;
 import com.springboot.backend.optica.modelo.DetalleMovimiento;
 import com.springboot.backend.optica.modelo.FichaGraduacion;
 import com.springboot.backend.optica.modelo.Graduacion;
+import com.springboot.backend.optica.modelo.MetodoPago;
 import com.springboot.backend.optica.modelo.Movimiento;
+import com.springboot.backend.optica.modelo.TarjetaDetalle;
 
 import org.apache.pdfbox.pdmodel.PDDocument;
 import org.apache.pdfbox.pdmodel.PDPage;
@@ -258,11 +260,27 @@ public class PdfService implements IPdfService {
 	                contentStream.showText("Pagos Realizados:");
 	                contentStream.endText();
 	                y -= spacing;
+
 	                contentStream.setFont(PDType1Font.HELVETICA, 10);
 	                for (CajaMovimiento p : movimiento.getCajaMovimientos()) {
+	                    String metodo = p.getMetodoPago().getTipo().name(); // "TARJETA_CREDITO", "TRANSFERENCIA", etc.
+
+	                    // Si el tipo es tarjeta, buscar tarjetaDetalle directamente desde CajaMovimiento
+	                    if (metodo.equals("TARJETA_CREDITO") || metodo.equals("TARJETA_DEBITO")) {
+	                        TarjetaDetalle detalle = p.getTarjetaDetalle(); // 🔁 Cambio clave
+
+	                        if (detalle != null && detalle.getTipoTarjeta() != null) {
+	                            metodo += " - " + detalle.getTipoTarjeta().getNombre(); // Ej: VISA, OTRA
+
+	                            if ("OTRA".equalsIgnoreCase(detalle.getTipoTarjeta().getNombre()) && detalle.getNombreOtro() != null) {
+	                                metodo += " (" + detalle.getNombreOtro() + ")";
+	                            }
+	                        }
+	                    }
+
 	                    contentStream.beginText();
 	                    contentStream.newLineAtOffset(x, y);
-	                    contentStream.showText("Método: " + p.getMetodoPago().getNombre() + " - Monto: " + p.getMonto());
+	                    contentStream.showText("Método: " + metodo + " - Monto: " + p.getMonto());
 	                    contentStream.endText();
 	                    y -= spacing;
 	                    deuda += p.getMonto();
@@ -357,18 +375,38 @@ public class PdfService implements IPdfService {
                 }
                 
                 //DETALLE DEL PAGO
-                if(!movimiento.getCajaMovimientos().isEmpty()) {
+                if (!movimiento.getCajaMovimientos().isEmpty()) {
 
-	                contentStream.setFont(PDType1Font.HELVETICA_BOLD, 10);
-	                contentStream.showText("Pagos Realizados:");
-	                contentStream.newLine();
-	                contentStream.setFont(PDType1Font.HELVETICA, 10);
-	                for (CajaMovimiento pago : movimiento.getCajaMovimientos()) {
-	                    contentStream.showText("Método: " + pago.getMetodoPago().getNombre() + " - Monto: " + pago.getMonto());
-	                    deuda+=pago.getMonto();
-	                    contentStream.newLine();
-	                }
-	            }
+                    contentStream.setFont(PDType1Font.HELVETICA_BOLD, 10);
+                    contentStream.showText("Pagos Realizados:");
+                    contentStream.newLine();
+
+                    contentStream.setFont(PDType1Font.HELVETICA, 10);
+                    for (CajaMovimiento pago : movimiento.getCajaMovimientos()) {
+                        MetodoPago metodoPago = pago.getMetodoPago();
+                        String metodo = metodoPago.getTipo().name(); // Ej: TARJETA_CREDITO, TRANSFERENCIA
+
+                        // Si es tarjeta, agregar tipo (VISA, OTRA, etc.)
+                        if (metodoPago.getTipo() == MetodoPago.TipoMetodoPago.TARJETA_CREDITO ||
+                            metodoPago.getTipo() == MetodoPago.TipoMetodoPago.TARJETA_DEBITO) {
+
+                            TarjetaDetalle detalle = pago.getTarjetaDetalle(); // 🔁 Cambio clave
+                            if (detalle != null && detalle.getTipoTarjeta() != null) {
+                                metodo += " - " + detalle.getTipoTarjeta().getNombre();
+
+                                // Si la tarjeta es "OTRA", mostrar el nombre personalizado
+                                if ("OTRA".equalsIgnoreCase(detalle.getTipoTarjeta().getNombre()) && detalle.getNombreOtro() != null) {
+                                    metodo += " (" + detalle.getNombreOtro() + ")";
+                                }
+                            }
+                        }
+
+                        contentStream.showText("Método: " + metodo + " - Monto: " + pago.getMonto());
+                        deuda += pago.getMonto();
+                        contentStream.newLine();
+                    }
+                }
+
                 
                 contentStream.setFont(PDType1Font.HELVETICA_BOLD, 10);
                 contentStream.showText("Total: " + movimiento.getTotal());

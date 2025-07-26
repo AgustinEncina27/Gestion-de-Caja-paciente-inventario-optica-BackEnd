@@ -30,6 +30,14 @@ public class CajaMovimiento implements Serializable {
     @JoinColumn(name = "metodo_pago_id", nullable = false)
     @JsonIgnoreProperties({"hibernateLazyInitializer", "handler"})
     private MetodoPago metodoPago;
+    
+	@Column(length = 100)
+	private String descripcionOtras; // Por ejemplo, nombre del banco, observaciones, etc.
+	
+	// Relación uno a uno opcional con detalles de tarjeta
+	@OneToOne(mappedBy = "cajaMovimiento", cascade = CascadeType.ALL, orphanRemoval = true, fetch = FetchType.LAZY)
+    @JsonIgnoreProperties({"cajaMovimiento", "hibernateLazyInitializer", "handler"})
+	private TarjetaDetalle tarjetaDetalle;
 
     @ManyToOne(fetch = FetchType.LAZY)
     @JoinColumn(name = "movimiento_id", nullable = false)

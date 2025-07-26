@@ -67,6 +67,10 @@ public class Movimiento implements Serializable {
     @JsonIgnoreProperties({"productoLocales","hibernateLazyInitializer", "handler"})
     private Local local;
     
+    @OneToMany(mappedBy = "movimiento", cascade = CascadeType.ALL, orphanRemoval = true)
+    @JsonIgnoreProperties({"movimiento", "hibernateLazyInitializer", "handler"})
+    private List<Factura> facturas;
+    
     @Enumerated(EnumType.STRING)
     private EstadoMovimiento estadoMovimiento;
     

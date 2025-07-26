@@ -28,28 +28,6 @@ public interface IMovimientoDao extends JpaRepository<Movimiento, Long> {
 		
 	@Query("SELECT m FROM Movimiento m " +
 		       "LEFT JOIN m.cajaMovimientos p " +
-		       "LEFT JOIN p.metodoPago metodo " +
-		       "LEFT JOIN m.paciente paciente " +
-		       "WHERE (:idLocal IS NULL OR m.local.id = :idLocal) AND " +
-		       "(:tipoMovimiento IS NULL OR m.tipoMovimiento = :tipoMovimiento) AND " +
-		       "(:nroFicha IS NULL OR paciente.ficha = :nroFicha) AND " +
-		       "(:metodoPago IS NULL OR metodo.nombre = :metodoPago) " +
-		       "GROUP BY m " +
-		       "HAVING (COALESCE(MAX(p.fecha), m.fecha) >= CAST(:fechaInicio AS timestamp)) AND " +
-		       "(COALESCE(MAX(p.fecha), m.fecha) < CAST(:fechaFin AS timestamp))"+
-		       "ORDER BY COALESCE(MAX(p.fecha), m.fecha) DESC")
-		Page<Movimiento> filtrarMovimientos(
-		        @Param("idLocal") Long idLocal,
-		        @Param("tipoMovimiento") String tipoMovimiento,
-		        @Param("nroFicha") Long nroFicha,
-		        @Param("fechaInicio") LocalDateTime fechaInicio,
-		        @Param("fechaFin") LocalDateTime fechaFin,
-		        @Param("metodoPago") String metodoPago,
-		        Pageable pageable
-		);
-		
-	@Query("SELECT m FROM Movimiento m " +
-		       "LEFT JOIN m.cajaMovimientos p " +
 		       "LEFT JOIN m.paciente paciente " +
 		       "WHERE p IS NULL AND " +
 		       "(:idLocal IS NULL OR m.local.id = :idLocal) AND " +

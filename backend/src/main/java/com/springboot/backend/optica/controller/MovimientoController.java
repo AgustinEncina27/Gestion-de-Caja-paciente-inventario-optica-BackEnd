@@ -28,6 +28,7 @@ import org.springframework.security.core.Authentication;
 
 
 import com.springboot.backend.optica.dto.FiltroDTO;
+import com.springboot.backend.optica.modelo.MetodoPago;
 import com.springboot.backend.optica.modelo.Movimiento;
 import com.springboot.backend.optica.service.IMovimientoService;
 import com.springboot.backend.optica.util.AuthUtils;
@@ -89,7 +90,7 @@ public class MovimientoController {
     }
     
     @GetMapping("/totales")
-    public Map<String, Double> calcularTotales(@RequestParam(required = false) Long idLocal) {
+    public Map<MetodoPago.TipoMetodoPago, Double> calcularTotales(@RequestParam(required = false) Long idLocal) {
         return movimientoService.calcularTotales(idLocal);
     }
     

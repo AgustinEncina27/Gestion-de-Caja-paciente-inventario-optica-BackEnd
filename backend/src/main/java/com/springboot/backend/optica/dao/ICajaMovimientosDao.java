@@ -10,6 +10,7 @@ import org.springframework.data.repository.query.Param;
 import org.springframework.stereotype.Repository;
 
 import com.springboot.backend.optica.modelo.CajaMovimiento;
+import com.springboot.backend.optica.modelo.MetodoPago.TipoMetodoPago;
 
 @Repository
 public interface ICajaMovimientosDao extends JpaRepository<CajaMovimiento, Long> {
@@ -22,7 +23,7 @@ public interface ICajaMovimientosDao extends JpaRepository<CajaMovimiento, Long>
 		    "    SELECT 1 FROM Paciente pac " +
 		    "    WHERE pac = p.movimiento.paciente AND LOWER(pac.nombreCompleto) LIKE :nombrePaciente" +
 		    ")) " +
-		    "AND (:metodoPago IS NULL OR p.metodoPago.nombre = :metodoPago) " +
+		    "AND (:metodoPago IS NULL OR p.metodoPago.tipo = :metodoPago) " +
 		    "AND p.fecha >= :fechaInicio AND p.fecha < :fechaFin " +
 		    "ORDER BY p.fecha DESC"
 		)
@@ -32,7 +33,7 @@ public interface ICajaMovimientosDao extends JpaRepository<CajaMovimiento, Long>
 		    @Param("nombrePaciente") String nombrePaciente,
 		    @Param("fechaInicio") LocalDateTime fechaInicio,
 		    @Param("fechaFin") LocalDateTime fechaFin,
-		    @Param("metodoPago") String metodoPago,
+		    @Param("metodoPago") TipoMetodoPago  metodoPago,
 		    Pageable pageable
 		);
 
