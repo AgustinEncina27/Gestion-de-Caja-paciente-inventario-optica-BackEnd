@@ -23,7 +23,7 @@ public interface IMovimientoService {
 	Page<Movimiento> findAllMovimiento(Pageable pageable);
 	Map<String, Double> calcularTotales(Long idLocal);
 	Page<Movimiento> findByLocalIdPaginated(Long idLocal, Pageable pageable);
-	Page<Movimiento> filtrarMovimientos(Long idLocal, String tipoMovimiento, Long nroFicha, LocalDate fecha, String metodoPago, Pageable pageable);
+	Page<Movimiento> filtrarMovimientos(Long idLocal, String tipoMovimiento, String nombrePaciente, LocalDate fecha, String metodoPago, Pageable pageable);
 	byte[] generarReporteMovimientoCliente(Long idMovimiento)throws IOException;
 	byte[] generarReporteMovimientoOptica(Long idMovimiento)throws IOException;
 	public Map<String, Map<String, Double>> calcularTotales(FiltroDTO filtros);

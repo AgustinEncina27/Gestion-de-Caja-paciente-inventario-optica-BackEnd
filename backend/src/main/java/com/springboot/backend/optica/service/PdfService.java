@@ -34,7 +34,6 @@ public class PdfService implements IPdfService {
 	        document.addPage(page);
 
 	        double deuda = 0;
-	        double total = 0;
 	        float x = 50;
 	        float y = 750;
 	        float spacing = 15;
@@ -83,14 +82,13 @@ public class PdfService implements IPdfService {
 
 	            // Ficha de graduación
 	            if (movimiento.getPaciente() != null && movimiento.getPaciente().getHistorialFichas() != null && !movimiento.getPaciente().getHistorialFichas().isEmpty()) {
-	            	Optional<FichaGraduacion> fichaOpt = movimiento.getPaciente().getHistorialFichas().stream()
+	            	Optional<FichaGraduacion> ultimaFichaOpt = movimiento.getPaciente().getHistorialFichas().stream()
 	            		    .max(Comparator
 	            		        .comparing(FichaGraduacion::getFecha)
 	            		        .thenComparing(FichaGraduacion::getId));
 
-
-	                if (fichaOpt.isPresent()) {
-	                    FichaGraduacion ficha = fichaOpt.get();
+	                if (ultimaFichaOpt.isPresent()) {
+	                    FichaGraduacion ficha = ultimaFichaOpt.get();
 
 	                    contentStream.setFont(PDType1Font.HELVETICA_BOLD, 10);
 	                    contentStream.beginText();
@@ -150,61 +148,69 @@ public class PdfService implements IPdfService {
 
 	                    y -= spacing;
 
-	                    // Graduación Ojo Derecho
+	                 // === GRADUACIÓN - Ojo Derecho ===
 	                    contentStream.setFont(PDType1Font.HELVETICA_BOLD, 10);
 	                    contentStream.beginText();
 	                    contentStream.newLineAtOffset(leftX, y);
-	                    contentStream.showText("Graduación Ojo Derecho:");
+	                    contentStream.showText("Lejos - Ojo Derecho:");
 	                    contentStream.endText();
-	                    y -= spacing;
-
-	                    contentStream.setFont(PDType1Font.HELVETICA, 10);
-	                    Optional<Graduacion> gradDer = ficha.getGraduaciones().stream()
-	                        .filter(g -> g.getOjo() == Graduacion.Ojo.DERECHO)
-	                        .findFirst();
-
-	                    String textoDer = "---";
-	                    if (gradDer.isPresent()) {
-	                        Graduacion g = gradDer.get();
-	                        textoDer = "Esférico: " + formatWithSign(g.getEsferico()) +
-	                                   ", Cilíndrico: " + formatWithSign(g.getCilindrico()) +
-	                                   ", Eje: " + safe(g.getEje()) +
-	                                   ", Adición: " + formatWithSign(g.getAdicion()) +
-	                                   ", Cerca: " + formatWithSign(g.getCerca());
-	                    }
 
 	                    contentStream.beginText();
-	                    contentStream.newLineAtOffset(leftX, y);
-	                    contentStream.showText(textoDer);
+	                    contentStream.newLineAtOffset(rightX, y);
+	                    contentStream.showText("Cerca - Ojo Derecho:");
 	                    contentStream.endText();
 	                    y -= spacing;
 
-	                    // Graduación Ojo Izquierdo
+	                    Optional<Graduacion> gradLejosDer = ficha.getGraduaciones().stream()
+	                        .filter(g -> g.getOjo() == Graduacion.Ojo.DERECHO && g.getTipo() == Graduacion.TipoGraduacion.LEJOS)
+	                        .findFirst();
+
+	                    Optional<Graduacion> gradCercaDer = ficha.getGraduaciones().stream()
+	                        .filter(g -> g.getOjo() == Graduacion.Ojo.DERECHO && g.getTipo() == Graduacion.TipoGraduacion.CERCA)
+	                        .findFirst();
+
+	                    contentStream.setFont(PDType1Font.HELVETICA, 10);
+	                    contentStream.beginText();
+	                    contentStream.newLineAtOffset(leftX, y);
+	                    contentStream.showText(generarTextoGraduacionSimple(gradLejosDer));
+	                    contentStream.endText();
+
+	                    contentStream.beginText();
+	                    contentStream.newLineAtOffset(rightX, y);
+	                    contentStream.showText(generarTextoGraduacionConAdicion(gradCercaDer, ficha.getAdicionDerecho()));
+	                    contentStream.endText();
+	                    y -= spacing;
+
+	                    // === GRADUACIÓN - Ojo Izquierdo ===
 	                    contentStream.setFont(PDType1Font.HELVETICA_BOLD, 10);
 	                    contentStream.beginText();
 	                    contentStream.newLineAtOffset(leftX, y);
-	                    contentStream.showText("Graduación Ojo Izquierdo:");
+	                    contentStream.showText("Lejos - Ojo Izquierdo:");
+	                    contentStream.endText();
+
+	                    contentStream.beginText();
+	                    contentStream.newLineAtOffset(rightX, y);
+	                    contentStream.showText("Cerca - Ojo Izquierdo:");
 	                    contentStream.endText();
 	                    y -= spacing;
 
-	                    contentStream.setFont(PDType1Font.HELVETICA, 10);
-	                    Optional<Graduacion> gradIzq = ficha.getGraduaciones().stream()
-	                        .filter(g -> g.getOjo() == Graduacion.Ojo.IZQUIERDO)
+	                    Optional<Graduacion> gradLejosIzq = ficha.getGraduaciones().stream()
+	                        .filter(g -> g.getOjo() == Graduacion.Ojo.IZQUIERDO && g.getTipo() == Graduacion.TipoGraduacion.LEJOS)
 	                        .findFirst();
 
-	                    String textoIzq = "---";
-	                    if (gradIzq.isPresent()) {
-	                        Graduacion g = gradIzq.get();
-	                        textoIzq = "Esférico: " + formatWithSign(g.getEsferico()) +
-	                                   ", Cilíndrico: " + formatWithSign(g.getCilindrico()) +
-	                                   ", Eje: " + safe(g.getEje()) +
-	                                   ", Adición: " + formatWithSign(g.getAdicion()) +
-	                                   ", Cerca: " + formatWithSign(g.getCerca());
-	                    }
+	                    Optional<Graduacion> gradCercaIzq = ficha.getGraduaciones().stream()
+	                        .filter(g -> g.getOjo() == Graduacion.Ojo.IZQUIERDO && g.getTipo() == Graduacion.TipoGraduacion.CERCA)
+	                        .findFirst();
 
+	                    contentStream.setFont(PDType1Font.HELVETICA, 10);
 	                    contentStream.beginText();
 	                    contentStream.newLineAtOffset(leftX, y);
-	                    contentStream.showText(textoIzq);
+	                    contentStream.showText(generarTextoGraduacionSimple(gradLejosIzq));
+	                    contentStream.endText();
+
+	                    contentStream.beginText();
+	                    contentStream.newLineAtOffset(rightX, y);
+	                    contentStream.showText(generarTextoGraduacionConAdicion(gradCercaIzq, ficha.getAdicionIzquierdo()));
 	                    contentStream.endText();
 	                    y -= spacing * 2;
 	                }
@@ -225,7 +231,6 @@ public class PdfService implements IPdfService {
 	                    contentStream.showText(d.getProducto().getModelo() + " - Marca: " + d.getProducto().getMarca().getNombre() + " - Cantidad: " + d.getCantidad() + " - Precio: " + d.getSubtotal());
 	                    contentStream.endText();
 	                    y -= spacing;
-	                    total += d.getSubtotal();
 	                }
 	            }
 
@@ -243,7 +248,6 @@ public class PdfService implements IPdfService {
 	                    contentStream.showText(d.getDescripcion() + " - Precio: " + d.getSubtotal());
 	                    contentStream.endText();
 	                    y -= spacing;
-	                    total += d.getSubtotal();
 	                }
 	            }
 
@@ -270,7 +274,7 @@ public class PdfService implements IPdfService {
 	            contentStream.setFont(PDType1Font.HELVETICA_BOLD, 10);
 	            contentStream.beginText();
 	            contentStream.newLineAtOffset(x, y);
-	            contentStream.showText("Total: " + total);
+	            contentStream.showText("Total: " + movimiento.getTotal());
 	            contentStream.endText();
 	            y -= spacing;
 
@@ -300,7 +304,6 @@ public class PdfService implements IPdfService {
             PDPage page = new PDPage();
             document.addPage(page);
             double deuda=0;
-            double total=0;
             
             DateTimeFormatter formatter = DateTimeFormatter.ofPattern("dd/MM/yyyy");
             
@@ -338,7 +341,6 @@ public class PdfService implements IPdfService {
 	                for (DetalleMovimiento detalle : movimiento.getDetalles()) {
 	                    contentStream.showText(detalle.getProducto().getModelo() +" - Marca: "+detalle.getProducto().getMarca().getNombre()+ " - Cantidad: " + detalle.getCantidad() + " - Precio: " + detalle.getSubtotal());
 	                    contentStream.newLine();
-	                    total+=detalle.getSubtotal();
 	                }
                 }
                 
@@ -351,7 +353,6 @@ public class PdfService implements IPdfService {
 	                for (DetalleAdicional detalle : movimiento.getDetallesAdicionales()) {
 	                    contentStream.showText(detalle.getDescripcion() +" - Precio: " + detalle.getSubtotal());
 	                    contentStream.newLine();
-	                    total+=detalle.getSubtotal();
 	                }
                 }
                 
@@ -370,7 +371,7 @@ public class PdfService implements IPdfService {
 	            }
                 
                 contentStream.setFont(PDType1Font.HELVETICA_BOLD, 10);
-                contentStream.showText("Total: " + total);
+                contentStream.showText("Total: " + movimiento.getTotal());
                 if(movimiento.getDescuento() !=null ) {
                 	contentStream.showText("       Total con descuento: " + movimiento.getTotal());
                     contentStream.showText("       Descuento: " + movimiento.getDescuento()+"%");
@@ -396,10 +397,22 @@ public class PdfService implements IPdfService {
 	private String safe(String value) {
 	    return (value != null && !value.trim().isEmpty()) ? value : "---";
 	}
-	
-	private String formatWithSign(Number value) {
-	    if (value == null) return "0.00";
-	    double doubleValue = value.doubleValue();
-	    return (doubleValue > 0 ? "+" : "") + String.format("%.2f", doubleValue);
+
+	private String generarTextoGraduacionSimple(Optional<Graduacion> grad) {
+	    return grad.map(g -> String.format("Esf: %s | Cil: %s | Eje: %s",
+	        formatFloat(g.getEsferico()), formatFloat(g.getCilindrico()), safe(g.getEje())))
+	        .orElse("Sin datos");
+	}
+
+	private String generarTextoGraduacionConAdicion(Optional<Graduacion> grad, Float adicion) {
+	    String textoGrad = grad.map(g -> String.format("Esf: %s | Cil: %s | Eje: %s",
+	        formatFloat(g.getEsferico()), formatFloat(g.getCilindrico()), safe(g.getEje())))
+	        .orElse("Sin datos");
+	    return textoGrad + " | Adición: " + formatFloat(adicion);
+	}
+
+	private String formatFloat(Float valor) {
+	    if (valor == null) return "-";
+	    return valor > 0 ? "+" + String.format("%.2f", valor) : String.format("%.2f", valor);
 	}
 }

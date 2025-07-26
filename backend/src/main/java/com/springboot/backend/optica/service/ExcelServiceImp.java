@@ -95,7 +95,7 @@ public class ExcelServiceImp {
 	            Producto p = resumenItem.producto;
 	            double costo = p.getCosto() != null ? p.getCosto() : 0.0;
 	            double precio = p.getPrecio();
-	            double ganancia = (precio - costo) * resumenItem.cantidad;
+	            double ganancia = resumenItem.total - (costo * resumenItem.cantidad);
 
 	            row.createCell(0).setCellValue(p.getModelo());
 
