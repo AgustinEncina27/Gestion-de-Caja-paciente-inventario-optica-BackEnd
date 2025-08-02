@@ -95,22 +95,40 @@ public class MovimientoServiceImpl implements IMovimientoService {
         return new PageImpl<>(movimientos, pageable, pagos.getTotalElements());
     }
     
-    private Movimiento clonarMovimiento(Movimiento original) {
-        Movimiento nuevo = new Movimiento();
-        nuevo.setId(original.getId());
-        nuevo.setTipoMovimiento(original.getTipoMovimiento());
-        nuevo.setTotal(original.getTotal());
-        nuevo.setDescuento(original.getDescuento());
-        nuevo.setVendedor(original.getVendedor());
-        nuevo.setTotalImpuesto(original.getTotalImpuesto());
-        nuevo.setDescripcion(original.getDescripcion());
-        nuevo.setPaciente(original.getPaciente());
-        nuevo.setCajaMovimientos(original.getCajaMovimientos());
-        nuevo.setDetalles(original.getDetalles());
-        nuevo.setDetallesAdicionales(original.getDetallesAdicionales());
-        nuevo.setLocal(original.getLocal());
-        nuevo.setEstadoMovimiento(original.getEstadoMovimiento());
-        return nuevo;
+    @Override
+    @Transactional(readOnly = true)
+    public List<Movimiento> filtrarMovimientosCompleto(
+            Long idLocal,
+            String tipoMovimiento,
+            String nombrePaciente,
+            LocalDate fecha,
+            String metodoPago) {
+
+        if (idLocal != null && idLocal == 0) idLocal = null;
+
+        LocalDateTime fechaInicio = (fecha != null) ? fecha.atStartOfDay() : LocalDateTime.of(2000, 1, 1, 0, 0);
+        LocalDateTime fechaFin = (fecha != null) ? fecha.plusDays(1).atStartOfDay() : LocalDateTime.of(2100, 1, 1, 0, 0);
+
+        if (nombrePaciente != null && !nombrePaciente.trim().isEmpty()) {
+            nombrePaciente = "%" + nombrePaciente.toLowerCase() + "%";
+        }
+
+        List<CajaMovimiento> pagos = cajaMovimientoRepository.buscarPagosConMovimientoCompleto(
+            idLocal,
+            tipoMovimiento,
+            nombrePaciente,
+            fechaInicio,
+            fechaFin,
+            metodoPago
+        );
+                
+        return pagos.stream()
+                .map(pago -> {
+                    Movimiento movimiento = clonarMovimiento(pago.getMovimiento());
+                    movimiento.setFecha(pago.getFecha());
+                    return movimiento;
+                })
+                .collect(Collectors.toList());
     }
     
     @Override
@@ -495,6 +513,22 @@ public class MovimientoServiceImpl implements IMovimientoService {
     }
 
 
-
+    private Movimiento clonarMovimiento(Movimiento original) {
+        Movimiento nuevo = new Movimiento();
+        nuevo.setId(original.getId());
+        nuevo.setTipoMovimiento(original.getTipoMovimiento());
+        nuevo.setTotal(original.getTotal());
+        nuevo.setDescuento(original.getDescuento());
+        nuevo.setVendedor(original.getVendedor());
+        nuevo.setTotalImpuesto(original.getTotalImpuesto());
+        nuevo.setDescripcion(original.getDescripcion());
+        nuevo.setPaciente(original.getPaciente());
+        nuevo.setCajaMovimientos(original.getCajaMovimientos());
+        nuevo.setDetalles(original.getDetalles());
+        nuevo.setDetallesAdicionales(original.getDetallesAdicionales());
+        nuevo.setLocal(original.getLocal());
+        nuevo.setEstadoMovimiento(original.getEstadoMovimiento());
+        return nuevo;
+    }
 
 }

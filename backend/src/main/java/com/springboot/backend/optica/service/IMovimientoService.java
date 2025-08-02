@@ -29,4 +29,5 @@ public interface IMovimientoService {
 	public Map<String, Map<String, Double>> calcularTotales(FiltroDTO filtros);
 	public byte[] exportarExcelProductosVendidos(FiltroDTO filtros) throws IOException;
 	byte[] exportarExcelMarcasVendidas(FiltroDTO filtros) throws IOException;
+	public List<Movimiento> filtrarMovimientosCompleto(Long idLocal,String tipoMovimiento,String nombrePaciente,LocalDate fecha,String metodoPago);
 }

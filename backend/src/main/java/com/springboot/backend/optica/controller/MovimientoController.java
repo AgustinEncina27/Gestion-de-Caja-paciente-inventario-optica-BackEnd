@@ -81,6 +81,29 @@ public class MovimientoController {
 
  	    return ResponseEntity.ok(movimientos);
  	}
+ 	
+    @GetMapping("/filtrar-completo")
+    public ResponseEntity<List<Movimiento>> filtrarMovimientosCompleto(
+            Authentication authentication,
+            @RequestParam(required = false) Long idLocal,
+            @RequestParam(required = false) String tipoMovimiento,
+            @RequestParam(required = false) String nombrePaciente,
+            @RequestParam(required = false) @DateTimeFormat(iso = DateTimeFormat.ISO.DATE) LocalDate fecha,
+            @RequestParam(required = false) String metodoPago) {
+        
+        Long idLocalUser = authUtils.obtenerLocalIdDesdeToken(authentication);
+        String rol = authUtils.obtenerRolDesdeToken(authentication);
+
+        List<Movimiento> movimientos;
+
+        if ("ROLE_ADMIN".equals(rol)) {
+            movimientos = movimientoService.filtrarMovimientosCompleto(idLocal, tipoMovimiento, nombrePaciente, fecha, metodoPago);
+        } else {
+            movimientos = movimientoService.filtrarMovimientosCompleto(idLocalUser, tipoMovimiento, nombrePaciente, fecha, metodoPago);
+        }
+
+        return ResponseEntity.ok(movimientos);
+    }
 
     @GetMapping("/{id}")
     public ResponseEntity<Movimiento> getMovimientoById(@PathVariable Long id) {
@@ -125,6 +148,8 @@ public class MovimientoController {
         Page<Movimiento> movimientos = movimientoService.findByTipoMovimiento(tipo, pageable);
         return ResponseEntity.ok(movimientos);
     }
+    
+
     
     @PostMapping("/total-vendido")
     public ResponseEntity<Map<String, Integer>> obtenerCantidadTotalVendida(@RequestBody FiltroDTO filtros) {
